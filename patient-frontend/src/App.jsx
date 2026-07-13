@@ -240,7 +240,7 @@ function PatientDashboard() {
             <div className="profile-meta">{plan.patient_age}y · {plan.patient_sex}</div>
             <button
               onClick={() => navigate('/')}
-              style={{ background: 'none', border: 'none', color: '#60a5fa', textDecoration: 'underline', fontSize: '0.68rem', cursor: 'pointer', textAlign: 'left', marginTop: 4 }}
+              style={{ background: 'none', border: 'none', color: 'var(--green)', textDecoration: 'underline', fontSize: '0.68rem', cursor: 'pointer', textAlign: 'left', marginTop: 4 }}
             >
               Switch Profile
             </button>
@@ -319,7 +319,7 @@ function PatientDashboard() {
                       <div className="card-title">📅 Daily Checklist</div>
                       <div className="card-subtitle">Complete daily tasks to earn recovery XP and badges</div>
                     </div>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#60a5fa' }}>{pctDone}% Complete</span>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--green)' }}>{pctDone}% Complete</span>
                   </div>
 
                   <div className="task-list">
@@ -387,7 +387,7 @@ function PatientDashboard() {
                     </div>
                     
                     <button type="submit" className="btn">💾 Save & Sync</button>
-                    {vitalsMsg && <div style={{ fontSize: '0.8rem', color: '#60a5fa', marginTop: 4 }}>{vitalsMsg}</div>}
+                    {vitalsMsg && <div style={{ fontSize: '0.8rem', color: 'var(--green)', marginTop: 4 }}>{vitalsMsg}</div>}
                   </form>
 
                   {/* Vitals History */}
@@ -474,7 +474,7 @@ function PatientDashboard() {
               {pData.diet_plan.caloric_target && (
                 <div style={{ background: 'rgba(255,255,255,0.02)', padding: '10px 16px', borderRadius: 8, border: '1px solid var(--border)' }}>
                   <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Calorie Target</div>
-                  <div style={{ color: '#60a5fa', fontWeight: 700, marginTop: 2 }}>{pData.diet_plan.caloric_target}</div>
+                  <div style={{ color: 'var(--green)', fontWeight: 700, marginTop: 2 }}>{pData.diet_plan.caloric_target}</div>
                 </div>
               )}
               {pData.diet_plan.protein_target && (
@@ -570,7 +570,7 @@ function PatientDashboard() {
                 <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: 12, padding: 18 }}>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Phase 1: Immediate</div>
                   <h4 style={{ margin: '8px 0', fontSize: '1rem' }}>{pData.exercise_plan.phase1.type}</h4>
-                  <div style={{ fontSize: '0.8rem', color: '#60a5fa' }}>⏱ Duration: {pData.exercise_plan.phase1.duration}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--green)' }}>⏱ Duration: {pData.exercise_plan.phase1.duration}</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: 8 }}>Intensity: {pData.exercise_plan.phase1.intensity}</div>
                   {pData.exercise_plan.phase1.precautions && <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 8 }}>Precautions: {pData.exercise_plan.phase1.precautions}</div>}
                 </div>
@@ -579,7 +579,7 @@ function PatientDashboard() {
                 <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: 12, padding: 18 }}>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Phase 2: Active Recovery</div>
                   <h4 style={{ margin: '8px 0', fontSize: '1rem' }}>{pData.exercise_plan.phase2.type}</h4>
-                  <div style={{ fontSize: '0.8rem', color: '#60a5fa' }}>⏱ Duration: {pData.exercise_plan.phase2.duration}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--green)' }}>⏱ Duration: {pData.exercise_plan.phase2.duration}</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: 8 }}>Intensity: {pData.exercise_plan.phase2.intensity}</div>
                 </div>
               )}
@@ -587,7 +587,7 @@ function PatientDashboard() {
                 <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: 12, padding: 18 }}>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Phase 3: Maintenance</div>
                   <h4 style={{ margin: '8px 0', fontSize: '1rem' }}>{pData.exercise_plan.phase3.type}</h4>
-                  <div style={{ fontSize: '0.8rem', color: '#60a5fa' }}>⏱ Duration: {pData.exercise_plan.phase3.duration}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--green)' }}>⏱ Duration: {pData.exercise_plan.phase3.duration}</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: 8 }}>Intensity: {pData.exercise_plan.phase3.intensity}</div>
                 </div>
               )}
@@ -619,11 +619,11 @@ function PatientDashboard() {
             <h2 style={{ fontFamily: 'Outfit', fontSize: '1.4rem', marginBottom: 12 }}>💊 Prescribed Medications</h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: 20 }}>Please take your medications exactly at the timings listed below.</p>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 16 }}>
               {pData.medications?.map((m, i) => (
-                <div key={i} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: 12, padding: 18, display: 'flex', justifyContent: 'space-between', gap: 16 }}>
+                <div key={i} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <div>
-                    <h4 style={{ fontSize: '1.05rem', color: '#60a5fa', fontWeight: 700 }}>{m.name}</h4>
+                    <h4 style={{ fontSize: '1.05rem', color: 'var(--green)', fontWeight: 700 }}>{m.name}</h4>
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>{m.class}</div>
                     
                     <div style={{ display: 'flex', gap: 20, marginTop: 12 }}>
@@ -651,7 +651,7 @@ function PatientDashboard() {
                     )}
                   </div>
 
-                  <div style={{ minWidth: 160, background: 'rgba(255,255,255,0.01)', padding: 14, borderRadius: 8, border: '1px solid var(--border)' }}>
+                  <div style={{ width: '100%', background: 'rgba(255,255,255,0.01)', padding: 14, borderRadius: 8, border: '1px solid var(--border)' }}>
                     <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>Side Effects to Watch</div>
                     {m.side_effects_to_watch?.map((side, j) => (
                       <div key={j} style={{ fontSize: '0.72rem', color: 'var(--amber)', background: 'rgba(245,158,11,0.08)', padding: '2px 6px', borderRadius: 4, marginBottom: 4 }}>
@@ -686,7 +686,7 @@ function PatientDashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               {pData.red_flag_symptoms?.map((rf, idx) => (
                 <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(239, 68, 68, 0.15)', borderRadius: 12, padding: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, color: '#fca5a5', fontSize: '0.95rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, color: '#b91c1c', fontSize: '0.95rem' }}>
                     <span>⚠️</span> {rf.symptom}
                   </div>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>Related Diagnosis: {rf.related_condition}</div>

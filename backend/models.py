@@ -1,3 +1,7 @@
+"""
+SQLAlchemy ORM models + Pydantic schemas for MedCare prototype.
+Uses SQLite for simplicity in the prototype.
+"""
 from sqlalchemy import create_engine, Column, String, Integer, Float, Boolean, Text, DateTime, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
@@ -5,8 +9,9 @@ from sqlalchemy.types import JSON
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+import uuid
 
-DATABASE_URL = "sqlite:///../backend/medcare.db"
+DATABASE_URL = "sqlite:///./medcare.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -19,7 +24,7 @@ def get_db():
         db.close()
 
 # ─────────────────────────────────────────────
-# Mapped Doctor Models (for Reading Data)
+# SQLAlchemy ORM Models
 # ─────────────────────────────────────────────
 
 class Patient(Base):
@@ -34,8 +39,7 @@ class Patient(Base):
     contact = Column(String, nullable=True)
     address = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
-    gamification = relationship("PatientGamification", back_populates="patient", uselist=False)
+    cases = relationship("Case", back_populates="patient")
 
 class Case(Base):
     __tablename__ = "cases"
@@ -43,12 +47,13 @@ class Case(Base):
     patient_id = Column(String, ForeignKey("patients.id"), nullable=False)
     discharge_text = Column(Text, nullable=True)
     status = Column(String, default="uploaded")
+    # uploaded → processing → review_required | ready → approved
     extracted_entities = Column(JSON, nullable=True)
     resolved_rules = Column(JSON, nullable=True)
     human_review_flags = Column(JSON, default=[])
     created_at = Column(DateTime, default=datetime.utcnow)
     processed_at = Column(DateTime, nullable=True)
-    
+    patient = relationship("Patient", back_populates="cases")
     care_plan = relationship("CarePlan", back_populates="case", uselist=False)
 
 class CarePlan(Base):
@@ -60,57 +65,87 @@ class CarePlan(Base):
     approved_by = Column(String, nullable=True)
     approved_at = Column(DateTime, nullable=True)
     generated_at = Column(DateTime, default=datetime.utcnow)
-    
     case = relationship("Case", back_populates="care_plan")
 
 # ─────────────────────────────────────────────
-# Patient-Specific Gamification & Tracking Model
+# Pydantic Schemas
 # ─────────────────────────────────────────────
 
-class PatientGamification(Base):
-    __tablename__ = "patient_gamification"
-    patient_id = Column(String, ForeignKey("patients.id"), primary_key=True)
-    xp = Column(Integer, default=0)
-    level = Column(Integer, default=1)
-    streak = Column(Integer, default=0)
-    longest_streak = Column(Integer, default=0)
-    last_active_date = Column(String, nullable=True)
-    badges = Column(JSON, default=[])         # Array of badge strings, e.g., ["first_step", "move_it"]
-    task_log = Column(JSON, default={})        # JSON map: {"2026-06-17": {"exercise": true, "bp_morning": false}}
-    vital_log = Column(JSON, default=[])       # List of vital measurements: [{"date": "...", "bp": "...", ...}]
-    
-    patient = relationship("Patient", back_populates="gamification")
+class PatientCreate(BaseModel):
+    name: str
+    age: int
+    sex: str
+    weight_kg: Optional[float] = None
+    blood_group: Optional[str] = None
+    allergies: List[str] = []
+    contact: Optional[str] = None
+    address: Optional[str] = None
 
-# ─────────────────────────────────────────────
-# Pydantic Schemas for Patient APIs
-# ─────────────────────────────────────────────
-
-class PatientListOut(BaseModel):
+class PatientOut(BaseModel):
     id: str
     name: str
     age: int
     sex: str
+    weight_kg: Optional[float]
+    blood_group: Optional[str]
+    allergies: List[str]
+    contact: Optional[str]
+    address: Optional[str]
     created_at: datetime
     class Config:
         from_attributes = True
 
-class GamificationState(BaseModel):
+class CaseCreate(BaseModel):
     patient_id: str
-    xp: int
-    level: int
-    streak: int
-    longest_streak: int
-    last_active_date: Optional[str] = None
-    badges: List[str] = []
-    task_log: Dict[str, Dict[str, bool]] = {}
-    vital_log: List[Dict[str, Any]] = []
+    discharge_text: str
 
-class GamificationSave(BaseModel):
-    xp: int
-    level: int
-    streak: int
-    longest_streak: int
-    last_active_date: Optional[str] = None
-    badges: List[str] = []
-    task_log: Dict[str, Dict[str, bool]] = {}
-    vital_log: List[Dict[str, Any]] = []
+class CaseSummary(BaseModel):
+    id: str
+    patient_id: str
+    patient_name: Optional[str] = None
+    patient_age: Optional[int] = None
+    status: str
+    created_at: datetime
+    processed_at: Optional[datetime] = None
+    human_review_flags: List[Dict] = []
+    flag_count: int = 0
+    has_care_plan: bool = False
+    primary_diagnoses: List[str] = []
+
+class CaseDetail(BaseModel):
+    id: str
+    patient_id: str
+    patient: Optional[PatientOut] = None
+    discharge_text: Optional[str] = None
+    status: str
+    extracted_entities: Optional[Dict] = None
+    resolved_rules: Optional[Dict] = None
+    human_review_flags: List[Dict] = []
+    created_at: datetime
+    processed_at: Optional[datetime] = None
+    has_care_plan: bool = False
+
+class CarePlanOut(BaseModel):
+    id: str
+    case_id: str
+    plan_data: Dict
+    approved: bool
+    approved_by: Optional[str] = None
+    approved_at: Optional[datetime] = None
+    generated_at: datetime
+    class Config:
+        from_attributes = True
+
+class ApproveRequest(BaseModel):
+    approved_by: str
+    notes: Optional[str] = None
+
+class StatsOut(BaseModel):
+    total_cases: int
+    uploaded: int
+    processing: int
+    review_required: int
+    ready: int
+    approved: int
+    total_patients: int
+    flags_pending: int
