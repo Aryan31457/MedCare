@@ -2,8 +2,11 @@
 FastAPI Main — All API routes + startup data seeding.
 Runs on http://localhost:8000
 """
+import os
 from fastapi import FastAPI, Depends, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from datetime import datetime
@@ -623,6 +626,24 @@ def save_gamification(patient_id: str, data: GamificationSave, db: Session = Dep
     db.commit()
     db.refresh(state)
     return state
+
+
+# Serve static files from frontend/dist in production
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIST_DIR = os.path.join(BASE_DIR, "..", "frontend", "dist")
+
+if os.path.exists(FRONTEND_DIST_DIR):
+    app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIST_DIR, "assets")), name="assets")
+
+    @app.get("/{catchall:path}", include_in_schema=False)
+    def serve_spa(catchall: str):
+        if catchall.startswith("api") or catchall.startswith("docs") or catchall.startswith("redoc") or catchall.startswith("openapi.json"):
+            raise HTTPException(status_code=404, detail="Not Found")
+        
+        index_file = os.path.join(FRONTEND_DIST_DIR, "index.html")
+        if os.path.exists(index_file):
+            return FileResponse(index_file)
+        raise HTTPException(status_code=404, detail="Frontend build missing index.html")
 
 
 if __name__ == "__main__":
