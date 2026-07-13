@@ -10,9 +10,10 @@ import uuid
 
 from models import (
     Base, engine, get_db,
-    Patient, Case, CarePlan,
+    Patient, Case, CarePlan, User,
     PatientCreate, PatientOut, CaseCreate,
-    CaseSummary, CaseDetail, CarePlanOut, ApproveRequest, StatsOut
+    CaseSummary, CaseDetail, CarePlanOut, ApproveRequest, StatsOut,
+    LoginRequest, UserOut
 )
 from knowledge_base import SAMPLE_PATIENTS, SAMPLE_DISCHARGE_TEXTS, DISEASE_KG
 from nlp_service import extract_entities
@@ -417,6 +418,18 @@ def get_stats(db: Session = Depends(get_db)):
         total_patients=db.query(Patient).count(),
         flags_pending=len(all_flags),
     )
+
+
+@app.post("/api/auth/login", response_model=UserOut, tags=["Authentication"])
+def login(data: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(
+        (User.username == data.username_or_email) | (User.email == data.username_or_email)
+    ).first()
+    
+    if not user or user.password != data.password:
+        raise HTTPException(status_code=400, detail="Invalid username/email or password.")
+        
+    return user
 
 
 # ─────────────────────────────────────────────

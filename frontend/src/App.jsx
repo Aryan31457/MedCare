@@ -7,15 +7,17 @@ import CaseDetail from './pages/CaseDetail.jsx'
 import CarePlanView from './pages/CarePlanView.jsx'
 import ReviewQueue from './pages/ReviewQueue.jsx'
 import Login from './pages/Login.jsx'
-import { PatientSelector, PatientDashboard } from './pages/PatientDashboardView.jsx'
+import { PatientDashboard } from './pages/PatientDashboardView.jsx'
 
 export default function App() {
   const [auth, setAuth] = useState(() => localStorage.getItem('auth') === 'true')
   const [role, setRole] = useState(() => localStorage.getItem('role'))
+  const [patientId, setPatientId] = useState(() => localStorage.getItem('patientId'))
 
-  const handleLoginSuccess = (userRole, patientId = null) => {
+  const handleLoginSuccess = (userRole, patientIdVal = null) => {
     setAuth(true)
     setRole(userRole)
+    setPatientId(patientIdVal)
   }
 
   const handleLogout = () => {
@@ -24,6 +26,7 @@ export default function App() {
     localStorage.removeItem('patientId')
     setAuth(false)
     setRole(null)
+    setPatientId(null)
   }
 
   if (!auth) {
@@ -52,7 +55,7 @@ export default function App() {
   // Else, role === 'patient'
   return (
     <Routes>
-      <Route path="/" element={<PatientSelector onLogout={handleLogout} />} />
+      <Route path="/" element={<Navigate to={`/patient/${patientId}`} replace />} />
       <Route path="/patient/:patientId" element={<PatientDashboard onLogout={handleLogout} />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

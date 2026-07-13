@@ -22,6 +22,15 @@ def get_db():
 # Mapped Doctor Models (for Reading Data)
 # ─────────────────────────────────────────────
 
+class User(Base):
+    __tablename__ = "users"
+    id = Column(String, primary_key=True)
+    username = Column(String, unique=True, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    password = Column(String, nullable=False)
+    role = Column(String, nullable=False) # "doctor" or "patient"
+    patient_id = Column(String, ForeignKey("patients.id"), nullable=True)
+
 class Patient(Base):
     __tablename__ = "patients"
     id = Column(String, primary_key=True)
@@ -114,3 +123,16 @@ class GamificationSave(BaseModel):
     badges: List[str] = []
     task_log: Dict[str, Dict[str, bool]] = {}
     vital_log: List[Dict[str, Any]] = []
+
+class LoginRequest(BaseModel):
+    username_or_email: str
+    password: str
+
+class UserOut(BaseModel):
+    id: str
+    username: str
+    email: str
+    role: str
+    patient_id: Optional[str] = None
+    class Config:
+        from_attributes = True

@@ -34,4 +34,8 @@ export const api = {
     method: 'POST',
     body: JSON.stringify(data)
   }),
+  login: (username_or_email, password) => req(DOCTOR_BASE, '/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ username_or_email, password })
+  }),
 }

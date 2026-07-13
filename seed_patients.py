@@ -6,7 +6,7 @@ from datetime import datetime
 # Add the current directory to python path to import models
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'backend')))
 
-from models import SessionLocal, Base, engine, Patient, Case, CarePlan
+from models import SessionLocal, Base, engine, Patient, Case, CarePlan, User
 from nlp_service import extract_entities
 from rule_engine import run_rule_engine
 from care_plan_generator import generate_care_plan
@@ -22,6 +22,19 @@ def seed():
         db.query(CarePlan).delete()
         db.query(Case).delete()
         db.query(Patient).delete()
+        db.query(User).delete()
+        db.commit()
+        
+        # Create Doctor User
+        doctor_user = User(
+            id="U-DOCTOR",
+            username="doctor",
+            email="doctor@medcare.com",
+            password="doctor123",
+            role="doctor",
+            patient_id=None
+        )
+        db.add(doctor_user)
         db.commit()
         
         # 5 Realistic Patients with distinct diseases
@@ -105,6 +118,19 @@ def seed():
                 created_at=datetime.utcnow()
             )
             db.add(patient)
+            db.flush()
+            
+            # Create User for Patient
+            patient_username = p_item["id"].split("-")[1].lower() # e.g. "diabetes"
+            patient_user = User(
+                id=f"U-{p_item['id'].split('-')[1]}",
+                username=patient_username,
+                email=f"{patient_username}@gmail.com",
+                password="patient123",
+                role="patient",
+                patient_id=patient.id
+            )
+            db.add(patient_user)
             db.flush()
             
             # Create Case

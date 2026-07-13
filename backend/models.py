@@ -27,6 +27,15 @@ def get_db():
 # SQLAlchemy ORM Models
 # ─────────────────────────────────────────────
 
+class User(Base):
+    __tablename__ = "users"
+    id = Column(String, primary_key=True)
+    username = Column(String, unique=True, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    password = Column(String, nullable=False)
+    role = Column(String, nullable=False) # "doctor" or "patient"
+    patient_id = Column(String, ForeignKey("patients.id"), nullable=True)
+
 class Patient(Base):
     __tablename__ = "patients"
     id = Column(String, primary_key=True)
@@ -149,3 +158,16 @@ class StatsOut(BaseModel):
     approved: int
     total_patients: int
     flags_pending: int
+
+class LoginRequest(BaseModel):
+    username_or_email: str
+    password: str
+
+class UserOut(BaseModel):
+    id: str
+    username: str
+    email: str
+    role: str
+    patient_id: Optional[str] = None
+    class Config:
+        from_attributes = True
