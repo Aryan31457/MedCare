@@ -24,6 +24,8 @@ export default function Login({ onLoginSuccess }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
+  const [showLoginPassword, setShowLoginPassword] = useState(false)
+  const [showRegPassword, setShowRegPassword] = useState(false)
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault()
@@ -147,14 +149,37 @@ export default function Login({ onLoginSuccess }) {
             </div>
             <div className="form-group" style={{ marginBottom: 24 }}>
               <label className="form-label">Password</label>
-              <input
-                type="password"
-                className="form-input"
-                placeholder="••••••••"
-                value={loginPassword}
-                onChange={e => setLoginPassword(e.target.value)}
-                required
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showLoginPassword ? 'text' : 'password'}
+                  className="form-input"
+                  style={{ paddingRight: 40 }}
+                  placeholder="••••••••"
+                  value={loginPassword}
+                  onChange={e => setLoginPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: 12,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '1.1rem',
+                    padding: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: 'var(--text-muted)'
+                  }}
+                >
+                  {showLoginPassword ? '👁️' : '🙈'}
+                </button>
+              </div>
             </div>
 
             <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} disabled={loading}>
@@ -195,14 +220,37 @@ export default function Login({ onLoginSuccess }) {
             </div>
             <div className="form-group" style={{ marginBottom: 14 }}>
               <label className="form-label">Password</label>
-              <input
-                type="password"
-                className="form-input"
-                placeholder="••••••••"
-                value={regPassword}
-                onChange={e => setRegPassword(e.target.value)}
-                required
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showRegPassword ? 'text' : 'password'}
+                  className="form-input"
+                  style={{ paddingRight: 40 }}
+                  placeholder="••••••••"
+                  value={regPassword}
+                  onChange={e => setRegPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowRegPassword(!showRegPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: 12,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '1.1rem',
+                    padding: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: 'var(--text-muted)'
+                  }}
+                >
+                  {showRegPassword ? '👁️' : '🙈'}
+                </button>
+              </div>
             </div>
             <div className="form-group" style={{ marginBottom: regRole === 'patient' ? 14 : 24 }}>
               <label className="form-label">I am a...</label>
