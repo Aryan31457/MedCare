@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { api } from '../api/client.js'
 
-export default function Layout({ children }) {
+export default function Layout({ children, onLogout }) {
   const [stats, setStats] = useState(null)
   const location = useLocation()
 
@@ -49,6 +49,9 @@ export default function Layout({ children }) {
           <a href="http://localhost:8000/api/kb/diseases" target="_blank" rel="noopener noreferrer" className="nav-item">
             <span className="nav-icon">🧬</span> Disease KG
           </a>
+          <button onClick={onLogout} className="nav-item" style={{ marginTop: 24, background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', color: 'var(--red)' }}>
+            <span className="nav-icon">🚪</span> Logout
+          </button>
         </nav>
 
         <div className="sidebar-footer">

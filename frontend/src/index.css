@@ -6,29 +6,29 @@
 
 /* ── CSS Variables ──────────────────────────── */
 :root {
-  --bg-base:       #070c18;
-  --bg-surface:    #0d1528;
-  --bg-card:       #111d35;
-  --bg-card-hover: #162342;
-  --bg-input:      #0e1a30;
-  --border:        rgba(99,143,255,0.12);
-  --border-hover:  rgba(99,143,255,0.28);
+  --bg-base:       #eef5f2;
+  --bg-surface:    #f4faf7;
+  --bg-card:       #f4faf7;
+  --bg-card-hover: #e6f4ed;
+  --bg-input:      #f4faf7;
+  --border:        #dbe6e2;
+  --border-hover:  rgba(16, 185, 129, 0.28);
 
-  --accent:        #3b82f6;
-  --accent-glow:   rgba(59,130,246,0.18);
-  --accent-light:  #60a5fa;
+  --accent:        #10b981;
+  --accent-glow:   rgba(16, 185, 129, 0.08);
+  --accent-light:  #059669;
   --green:         #10b981;
-  --green-glow:    rgba(16,185,129,0.15);
-  --amber:         #f59e0b;
-  --amber-glow:    rgba(245,158,11,0.15);
-  --red:           #ef4444;
-  --red-glow:      rgba(239,68,68,0.15);
-  --purple:        #8b5cf6;
+  --green-glow:    rgba(16, 185, 129, 0.08);
+  --amber:         #ea580c;
+  --amber-glow:    rgba(234, 88, 12, 0.08);
+  --red:           #dc2626;
+  --red-glow:      rgba(220, 38, 38, 0.08);
+  --purple:        #7c3aed;
   --cyan:          #06b6d4;
 
-  --text-primary:  #e8f0ff;
-  --text-secondary:#8ba4c8;
-  --text-muted:    #4d6a8c;
+  --text-primary:  #1b322a;
+  --text-secondary:#475a52;
+  --text-muted:    #738c82;
 
   --sidebar-w:     240px;
   --radius-sm:     8px;
@@ -36,7 +36,7 @@
   --radius-lg:     16px;
   --radius-xl:     24px;
 
-  --shadow-card:   0 4px 24px rgba(0,0,0,0.4), 0 0 0 1px var(--border);
+  --shadow-card:   0 4px 20px rgba(0, 0, 0, 0.03), 0 0 0 1px var(--border);
   --shadow-glow:   0 0 20px var(--accent-glow);
   --transition:    all 0.2s cubic-bezier(0.4,0,0.2,1);
 }
@@ -61,7 +61,7 @@ h4 { font-size: 0.95rem; font-weight: 600; }
 p  { color: var(--text-secondary); line-height: 1.7; }
 
 a { color: var(--accent-light); text-decoration: none; }
-a:hover { color: #fff; }
+a:hover { color: var(--accent); }
 
 /* ── Layout ─────────────────────────────────── */
 .app-shell { display: flex; min-height: 100vh; }
@@ -91,11 +91,11 @@ a:hover { color: #fff; }
 }
 .logo-icon {
   width: 36px; height: 36px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  background: linear-gradient(135deg, #10b981, #059669);
   border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   font-size: 1.1rem;
-  box-shadow: 0 0 16px rgba(59,130,246,0.35);
+  box-shadow: 0 0 16px rgba(16,185,129,0.3);
 }
 .logo-text { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); }
 .logo-sub { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
@@ -159,8 +159,7 @@ a:hover { color: #fff; }
 }
 
 .topbar {
-  background: rgba(13,21,40,0.8);
-  backdrop-filter: blur(12px);
+  background: #ffffff;
   border-bottom: 1px solid var(--border);
   padding: 16px 32px;
   display: flex;
@@ -251,23 +250,23 @@ a:hover { color: #fff; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 
 .btn-primary {
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  background: linear-gradient(135deg, #10b981, #059669);
   color: #fff;
-  box-shadow: 0 4px 14px rgba(59,130,246,0.35);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
 }
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,0.5); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3); }
 
 .btn-success {
   background: linear-gradient(135deg, #10b981, #059669);
   color: #fff;
-  box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
 }
-.btn-success:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
+.btn-success:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3); }
 
 .btn-danger {
   background: linear-gradient(135deg, #ef4444, #dc2626);
   color: #fff;
-  box-shadow: 0 4px 14px rgba(239,68,68,0.3);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.25);
 }
 .btn-danger:hover { transform: translateY(-1px); }
 

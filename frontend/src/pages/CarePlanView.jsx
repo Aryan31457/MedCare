@@ -297,11 +297,13 @@ function MedsTab({meds}){
                 </ul>
               )}
             </div>
-            <div style={{minWidth:140}}>
+            <div style={{borderTop:'1px solid var(--border)', paddingTop:12, marginTop:4}}>
               <div style={{fontSize:'0.68rem',color:'var(--text-muted)',marginBottom:6,textTransform:'uppercase'}}>Watch For</div>
-              {m.side_effects_to_watch?.slice(0,3).map((s,j)=>(
-                <div key={j} style={{fontSize:'0.72rem',color:'var(--amber)',background:'rgba(245,158,11,0.08)',padding:'2px 6px',borderRadius:4,marginBottom:4}}>{s}</div>
-              ))}
+              <div style={{display:'flex', flexWrap:'wrap', gap:6}}>
+                {m.side_effects_to_watch?.slice(0,3).map((s,j)=>(
+                  <div key={j} style={{fontSize:'0.72rem',color:'var(--amber)',background:'rgba(245,158,11,0.08)',padding:'4px 8px',borderRadius:4}}>{s}</div>
+                ))}
+              </div>
             </div>
           </div>
         ))}
