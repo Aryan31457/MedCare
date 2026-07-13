@@ -1,7 +1,8 @@
-const BASE = 'http://localhost:8000/api'
+const DOCTOR_BASE = 'http://localhost:8000/api'
+const PATIENT_BASE = 'http://localhost:8001/api'
 
-async function req(path, opts = {}) {
-  const res = await fetch(`${BASE}${path}`, {
+async function req(base, path, opts = {}) {
+  const res = await fetch(`${base}${path}`, {
     headers: { 'Content-Type': 'application/json', ...opts.headers },
     ...opts,
   })
@@ -13,16 +14,24 @@ async function req(path, opts = {}) {
 }
 
 export const api = {
-  getStats:       ()     => req('/stats'),
-  getPatients:    ()     => req('/patients'),
-  createPatient:  (d)    => req('/patients',           { method: 'POST', body: JSON.stringify(d) }),
-  getCases:       ()     => req('/cases'),
-  createCase:     (d)    => req('/cases',              { method: 'POST', body: JSON.stringify(d) }),
-  getCase:        (id)   => req(`/cases/${id}`),
-  processCase:    (id)   => req(`/cases/${id}/process`,  { method: 'POST' }),
-  generatePlan:   (id)   => req(`/cases/${id}/generate`, { method: 'POST' }),
-  getCarePlan:    (id)   => req(`/cases/${id}/plan`),
-  approveCase:    (id,d) => req(`/cases/${id}/approve`,  { method: 'PUT', body: JSON.stringify(d) }),
-  getReviewQueue: ()     => req('/review'),
-  getDiseases:    ()     => req('/kb/diseases'),
+  getStats:       ()     => req(DOCTOR_BASE, '/stats'),
+  getPatients:    ()     => req(DOCTOR_BASE, '/patients'),
+  createPatient:  (d)    => req(DOCTOR_BASE, '/patients',           { method: 'POST', body: JSON.stringify(d) }),
+  getCases:       ()     => req(DOCTOR_BASE, '/cases'),
+  createCase:     (d)    => req(DOCTOR_BASE, '/cases',              { method: 'POST', body: JSON.stringify(d) }),
+  getCase:        (id)   => req(DOCTOR_BASE, `/cases/${id}`),
+  processCase:    (id)   => req(DOCTOR_BASE, `/cases/${id}/process`,  { method: 'POST' }),
+  generatePlan:   (id)   => req(DOCTOR_BASE, `/cases/${id}/generate`, { method: 'POST' }),
+  getCarePlan:    (id)   => req(DOCTOR_BASE, `/cases/${id}/plan`),
+  approveCase:    (id,d) => req(DOCTOR_BASE, `/cases/${id}/approve`,  { method: 'PUT', body: JSON.stringify(d) }),
+  getReviewQueue: ()     => req(DOCTOR_BASE, '/review'),
+  getDiseases:    ()     => req(DOCTOR_BASE, '/kb/diseases'),
+
+  getPatientsAll:      () => req(PATIENT_BASE, '/patients/all'),
+  getPatientPlan:      (patientId) => req(PATIENT_BASE, `/patients/${patientId}/plan`),
+  getPatientGamification:  (patientId) => req(PATIENT_BASE, `/patients/${patientId}/gamification`),
+  savePatientGamification: (patientId, data) => req(PATIENT_BASE, `/patients/${patientId}/gamification`, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
 }
