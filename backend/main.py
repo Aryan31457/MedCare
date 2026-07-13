@@ -3,6 +3,9 @@ FastAPI Main — All API routes + startup data seeding.
 Runs on http://localhost:8000
 """
 import os
+from dotenv import load_dotenv
+load_dotenv()  # Load GEMINI_API_KEY from backend/.env
+
 from fastapi import FastAPI, Depends, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -23,6 +26,7 @@ from knowledge_base import SAMPLE_PATIENTS, SAMPLE_DISCHARGE_TEXTS, DISEASE_KG
 from nlp_service import extract_entities
 from rule_engine import run_rule_engine
 from care_plan_generator import generate_care_plan
+from gemini_service import generate_care_plan_gemini
 
 # ─────────────────────────────────────────────
 # App Setup
@@ -381,6 +385,141 @@ def generate_plan(case_id: str, db: Session = Depends(get_db)):
         "confidence_score": plan_data.get("confidence_score", 0.0),
         "plan_data": plan_data,
     }
+
+
+@app.post("/api/cases/{case_id}/generate-gemini", tags=["Cases"])
+def generate_plan_gemini(case_id: str, db: Session = Depends(get_db)):
+    """
+    Generate care plan using Gemini AI with automatic NLP fallback.
+    - Tries Gemini first (if API key is set and call succeeds with valid JSON).
+    - Falls back to NLP + Rule Engine silently on ANY failure:
+        quota exceeded, rate limit, bad JSON, network error, missing key, etc.
+    Always returns a care plan — never fails.
+    """
+    case = db.query(Case).filter(Case.id == case_id).first()
+    if not case:
+        raise HTTPException(404, "Case not found")
+    if not case.discharge_text:
+        raise HTTPException(400, "No discharge text found for this case")
+
+    patient = case.patient
+    if not patient:
+        raise HTTPException(400, "Patient not found for this case")
+
+    patient_dict = {
+        "id": patient.id, "name": patient.name, "age": patient.age,
+        "sex": patient.sex, "weight_kg": patient.weight_kg,
+        "allergies": patient.allergies or [],
+    }
+
+    # ── Attempt 1: Gemini AI ──────────────────────────────────────────────────
+    plan_data         = None
+    generation_method = "nlp"     # default; overwritten on Gemini success
+    fallback_reason   = None
+
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    gemini_enabled = bool(api_key and api_key != "your_gemini_api_key_here")
+
+    if gemini_enabled:
+        try:
+            plan_data = generate_care_plan_gemini(patient_dict, case.discharge_text)
+            generation_method = "gemini"
+            print(f"[GEMINI] ✅ Care plan generated via Gemini for case {case_id}")
+
+        except ValueError as exc:
+            fallback_reason = f"Gemini config error: {exc}"
+            print(f"[GEMINI] ⚠️  Config error — falling back to NLP: {exc}")
+
+        except RuntimeError as exc:
+            is_limit = getattr(exc, "is_limit", False)
+            tag = "Rate-limit/Quota" if is_limit else "Response error"
+            fallback_reason = f"{tag}: {str(exc)[:200]}"
+            print(f"[GEMINI] ⚠️  {tag} — falling back to NLP: {exc}")
+
+        except Exception as exc:
+            fallback_reason = f"Unexpected error: {str(exc)[:200]}"
+            print(f"[GEMINI] ⚠️  Unexpected error — falling back to NLP: {exc}")
+    else:
+        fallback_reason = "GEMINI_API_KEY not configured"
+        print(f"[GEMINI] ⚠️  API key not set — using NLP pipeline")
+
+    # ── Attempt 2: NLP + Rule Engine fallback ─────────────────────────────────
+    if plan_data is None:
+        try:
+            entities  = extract_entities(case.discharge_text)
+            rules     = run_rule_engine(patient_dict, entities)
+            plan_data = generate_care_plan(patient_dict, entities, rules)
+            plan_data["generation_method"] = "nlp"
+
+            # Persist NLP extracted data
+            case.extracted_entities = entities
+            case.resolved_rules     = rules
+            case.human_review_flags = rules.get("flags", [])
+            print(f"[NLP] ✅ Fallback NLP care plan generated for case {case_id}")
+
+        except Exception as exc:
+            print(f"[NLP] ❌ NLP fallback also failed: {exc}")
+            raise HTTPException(500, f"Both Gemini and NLP generation failed: {exc}")
+
+    # ── Persist case status ───────────────────────────────────────────────────
+    if not case.extracted_entities:
+        case.extracted_entities = {
+            "source": generation_method, "disease_codes": [],
+            "drugs": [], "drug_codes": [], "lab_values": [], "allergies": []
+        }
+    if not case.resolved_rules:
+        case.resolved_rules = {
+            "source": generation_method,
+            "flags": plan_data.get("human_review_flags", []),
+            "conflicts": [], "allergy_alerts": []
+        }
+
+    has_critical = any(
+        f.get("severity") in ("critical", "high")
+        for f in plan_data.get("human_review_flags", [])
+    )
+    case.status             = "review_required" if has_critical else "ready"
+    case.human_review_flags = plan_data.get("human_review_flags", [])
+    case.processed_at       = datetime.utcnow()
+
+    # ── Save Care Plan ────────────────────────────────────────────────────────
+    existing = db.query(CarePlan).filter(CarePlan.case_id == case_id).first()
+    if existing:
+        db.delete(existing)
+        db.flush()
+
+    cp = CarePlan(
+        id=f"CP-{str(uuid.uuid4())[:8].upper()}",
+        case_id=case_id,
+        plan_data=plan_data,
+        approved=False,
+    )
+    db.add(cp)
+    db.commit()
+    db.refresh(cp)
+
+    label = "Gemini AI ✨" if generation_method == "gemini" else "NLP Engine 🔬"
+    return {
+        "message":           f"Care plan generated via {label}"
+                             + (f" (Gemini fell back: {fallback_reason})" if fallback_reason else ""),
+        "care_plan_id":      cp.id,
+        "requires_review":   plan_data.get("requires_human_review", False),
+        "confidence_score":  plan_data.get("confidence_score", 0.0),
+        "generation_method": generation_method,
+        "gemini_attempted":  gemini_enabled,
+        "fallback_used":     fallback_reason is not None,
+        "fallback_reason":   fallback_reason,
+        "plan_data":         plan_data,
+    }
+
+
+@app.get("/api/gemini-status", tags=["Config"])
+def gemini_status():
+    """Check if Gemini API key is configured."""
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    configured = bool(api_key and api_key != "your_gemini_api_key_here")
+    return {"gemini_configured": configured}
+
 
 
 @app.get("/api/cases/{case_id}/plan", tags=["Cases"])
