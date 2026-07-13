@@ -9,7 +9,8 @@ import re
 from datetime import datetime
 
 try:
-    import google.generativeai as genai
+    from google import genai
+    from google.genai import types as genai_types
     GEMINI_AVAILABLE = True
 except ImportError:
     GEMINI_AVAILABLE = False
@@ -28,16 +29,15 @@ def _is_limit_error(exc: Exception) -> bool:
     return any(phrase in msg for phrase in _LIMIT_PHRASES)
 
 
-def _get_model():
+def _get_client():
     api_key = os.environ.get("GEMINI_API_KEY", "")
     if not api_key or api_key == "your_gemini_api_key_here":
         raise ValueError("GEMINI_API_KEY environment variable is not set.")
     if not GEMINI_AVAILABLE:
         raise ImportError(
-            "google-generativeai package is not installed. Run: pip install google-generativeai"
+            "google-genai package is not installed. Run: pip install google-genai"
         )
-    genai.configure(api_key=api_key)
-    return genai.GenerativeModel("gemini-2.0-flash")
+    return genai.Client(api_key=api_key)
 
 
 def generate_care_plan_gemini(patient_data: dict, discharge_text: str) -> dict:
@@ -51,7 +51,7 @@ def generate_care_plan_gemini(patient_data: dict, discharge_text: str) -> dict:
         RuntimeError(limit=True) — quota / rate-limit hit (check exc.is_limit)
         RuntimeError — any other Gemini / JSON parse failure
     """
-    model = _get_model()
+    client = _get_client()
 
     name       = patient_data.get("name", "Patient")
     age        = patient_data.get("age", "Unknown")
@@ -170,7 +170,10 @@ RULES:
 """
 
     try:
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt,
+        )
         raw = response.text.strip()
     except Exception as exc:
         err = RuntimeError(f"Gemini API call failed: {exc}")
