@@ -264,15 +264,6 @@ export default function Login({ onLoginSuccess }) {
           </form>
         )}
 
-        {!isRegister && (
-          <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--border)', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-            <div style={{ fontWeight: 700, marginBottom: 8, color: 'var(--text-secondary)' }}>Demo Accounts:</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <div><strong>Doctor Role:</strong> <code>doctor</code> / <code>doctor123</code></div>
-              <div><strong>Patient Role:</strong> <code>diabetes</code> / <code>patient123</code></div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )
