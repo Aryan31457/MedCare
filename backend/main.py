@@ -48,6 +48,7 @@ def startup_event():
     Base.metadata.create_all(bind=engine)
     db = next(get_db())
     _seed_sample_data(db)
+    _seed_users(db)
     db.close()
 
 
@@ -134,6 +135,49 @@ def _seed_sample_data(db: Session):
 
     db.commit()
     print("[SEED] Sample data seeded successfully.")
+
+
+def _seed_users(db: Session):
+    doctor_exists = db.query(User).filter(User.username == "doctor").first()
+    if not doctor_exists:
+        print("[SEED] Seeding default doctor user...")
+        doctor_user = User(
+            id="U-DOCTOR",
+            username="doctor",
+            email="doctor@medcare.com",
+            password="doctor123",
+            role="doctor",
+            patient_id=None
+        )
+        db.add(doctor_user)
+        db.commit()
+
+    all_patients = db.query(Patient).all()
+    for patient in all_patients:
+        if patient.id == "P001":
+            username = "ramesh"
+        elif patient.id == "P002":
+            username = "priya"
+        elif patient.id == "P003":
+            username = "arjun"
+        else:
+            username = patient.id.split("-")[1].lower() if "-" in patient.id else patient.name.lower().replace(" ", "")
+            
+        email = f"{username}@gmail.com"
+        
+        user_exists = db.query(User).filter(User.patient_id == patient.id).first()
+        if not user_exists:
+            print(f"[SEED] Seeding patient user account for {patient.name} ({username})...")
+            patient_user = User(
+                id=f"U-{patient.id}",
+                username=username,
+                email=email,
+                password="patient123",
+                role="patient",
+                patient_id=patient.id
+            )
+            db.add(patient_user)
+    db.commit()
 
 
 # ─────────────────────────────────────────────
