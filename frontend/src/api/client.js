@@ -1,5 +1,5 @@
 const DOCTOR_BASE = 'http://localhost:8000/api'
-const PATIENT_BASE = 'http://localhost:8001/api'
+const PATIENT_BASE = 'http://localhost:8000/api'
 
 async function req(base, path, opts = {}) {
   const res = await fetch(`${base}${path}`, {

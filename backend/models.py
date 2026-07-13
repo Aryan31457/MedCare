@@ -51,6 +51,20 @@ class Patient(Base):
     address = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     cases = relationship("Case", back_populates="patient")
+    gamification = relationship("PatientGamification", back_populates="patient", uselist=False)
+
+class PatientGamification(Base):
+    __tablename__ = "patient_gamification"
+    patient_id = Column(String, ForeignKey("patients.id"), primary_key=True)
+    xp = Column(Integer, default=0)
+    level = Column(Integer, default=1)
+    streak = Column(Integer, default=0)
+    longest_streak = Column(Integer, default=0)
+    last_active_date = Column(String, nullable=True)
+    badges = Column(JSON, default=[])
+    task_log = Column(JSON, default={})
+    vital_log = Column(JSON, default=[])
+    patient = relationship("Patient", back_populates="gamification")
 
 class Case(Base):
     __tablename__ = "cases"
@@ -182,3 +196,33 @@ class UserOut(BaseModel):
     patient_id: Optional[str] = None
     class Config:
         from_attributes = True
+
+class PatientListOut(BaseModel):
+    id: str
+    name: str
+    age: int
+    sex: str
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+class GamificationState(BaseModel):
+    patient_id: str
+    xp: int
+    level: int
+    streak: int
+    longest_streak: int
+    last_active_date: Optional[str] = None
+    badges: List[str] = []
+    task_log: Dict[str, Dict[str, bool]] = {}
+    vital_log: List[Dict[str, Any]] = []
+
+class GamificationSave(BaseModel):
+    xp: int
+    level: int
+    streak: int
+    longest_streak: int
+    last_active_date: Optional[str] = None
+    badges: List[str] = []
+    task_log: Dict[str, Dict[str, bool]] = {}
+    vital_log: List[Dict[str, Any]] = []
