@@ -54,20 +54,26 @@ app.add_middleware(
 def startup_event():
     Base.metadata.create_all(bind=engine)
     db = next(get_db())
-    _seed_sample_data(db)
-    _seed_users(db)
-    db.close()
+    try:
+        _seed_sample_data(db)
+        _seed_users(db)
+    except Exception as e:
+        print(f"[SEED] ⚠️  Seeding error (non-fatal): {e}")
+    finally:
+        db.close()
 
 
 def _seed_sample_data(db: Session):
-    # Only seed if no patients exist
-    if db.query(Patient).count() > 0:
-        return
-
-    print("[SEED] Seeding sample patients and cases...")
+    """Idempotent — seeds only what is missing. Safe to call multiple times."""
     created_patients = {}
 
+    # ── Ensure all 3 sample patients exist ──────────────────────────────────
     for sp in SAMPLE_PATIENTS:
+        existing = db.query(Patient).filter(Patient.id == sp["id"]).first()
+        if existing:
+            created_patients[sp["id"]] = existing
+            continue
+        print(f"[SEED] Creating patient {sp['id']} — {sp['name']}")
         patient = Patient(
             id=sp["id"],
             name=sp["name"],
@@ -84,7 +90,7 @@ def _seed_sample_data(db: Session):
 
     db.commit()
 
-    # Create and auto-process cases for all 3 patients
+    # ── Ensure each patient has a processed case + care plan ─────────────────
     case_configs = [
         ("P001", "review_required"),   # Ramesh — complex, needs review
         ("P002", "approved"),           # Priya — simple, auto-approved
@@ -92,6 +98,15 @@ def _seed_sample_data(db: Session):
     ]
 
     for patient_id, target_status in case_configs:
+        # Check if this patient already has a case with a care plan
+        existing_case = (
+            db.query(Case)
+            .filter(Case.patient_id == patient_id)
+            .first()
+        )
+        if existing_case and existing_case.care_plan:
+            continue  # Already fully seeded
+
         patient_obj = created_patients[patient_id]
         discharge_text = SAMPLE_DISCHARGE_TEXTS.get(patient_id, "")
         patient_dict = {
@@ -103,88 +118,99 @@ def _seed_sample_data(db: Session):
             "allergies": patient_obj.allergies or [],
         }
 
-        # Extract entities
-        entities = extract_entities(discharge_text)
-        # Run rule engine
-        rules = run_rule_engine(patient_dict, entities)
-        # Generate care plan
+        entities  = extract_entities(discharge_text)
+        rules     = run_rule_engine(patient_dict, entities)
         plan_data = generate_care_plan(patient_dict, entities, rules)
 
-        # Determine status
         has_critical = any(f.get("severity") == "critical" for f in rules.get("flags", []))
         status = target_status
         if target_status == "review_required" and not has_critical:
             status = "ready"
 
-        case_id = f"C{patient_id[1:]}-{str(uuid.uuid4())[:6].upper()}"
-        case = Case(
-            id=case_id,
-            patient_id=patient_id,
-            discharge_text=discharge_text,
-            status=status,
-            extracted_entities=entities,
-            resolved_rules=rules,
-            human_review_flags=rules.get("flags", []),
-            processed_at=datetime.utcnow(),
-        )
-        db.add(case)
-        db.flush()
+        if existing_case:
+            case_obj = existing_case
+        else:
+            print(f"[SEED] Creating case for patient {patient_id}")
+            case_id  = f"C{patient_id[1:]}-{str(uuid.uuid4())[:6].upper()}"
+            case_obj = Case(
+                id=case_id,
+                patient_id=patient_id,
+                discharge_text=discharge_text,
+                status=status,
+                extracted_entities=entities,
+                resolved_rules=rules,
+                human_review_flags=rules.get("flags", []),
+                processed_at=datetime.utcnow(),
+            )
+            db.add(case_obj)
+            db.flush()
 
-        cp = CarePlan(
-            id=f"CP-{str(uuid.uuid4())[:8].upper()}",
-            case_id=case_id,
-            plan_data=plan_data,
-            approved=(status == "approved"),
-            approved_by="Dr. System (Auto-seeded)" if status == "approved" else None,
-            approved_at=datetime.utcnow() if status == "approved" else None,
-        )
-        db.add(cp)
+        # Ensure care plan exists for this case
+        if not db.query(CarePlan).filter(CarePlan.case_id == case_obj.id).first():
+            print(f"[SEED] Creating care plan for case {case_obj.id}")
+            cp = CarePlan(
+                id=f"CP-{str(uuid.uuid4())[:8].upper()}",
+                case_id=case_obj.id,
+                plan_data=plan_data,
+                approved=(status == "approved"),
+                approved_by="Dr. System (Auto-seeded)" if status == "approved" else None,
+                approved_at=datetime.utcnow() if status == "approved" else None,
+            )
+            db.add(cp)
 
     db.commit()
-    print("[SEED] Sample data seeded successfully.")
+    print("[SEED] ✅ Sample data seeding complete.")
 
 
 def _seed_users(db: Session):
-    doctor_exists = db.query(User).filter(User.username == "doctor").first()
-    if not doctor_exists:
-        print("[SEED] Seeding default doctor user...")
-        doctor_user = User(
+    """Idempotent — ensures all demo accounts exist. Safe to call multiple times."""
+
+    # ── Doctor account ────────────────────────────────────────────────────────
+    if not db.query(User).filter(User.id == "U-DOCTOR").first():
+        print("[SEED] Creating doctor user — doctor / doctor123")
+        db.add(User(
             id="U-DOCTOR",
             username="doctor",
             email="doctor@medcare.com",
             password="doctor123",
             role="doctor",
-            patient_id=None
-        )
-        db.add(doctor_user)
+            patient_id=None,
+        ))
         db.commit()
 
-    all_patients = db.query(Patient).all()
-    for patient in all_patients:
-        if patient.id == "P001":
-            username = "ramesh"
-        elif patient.id == "P002":
-            username = "priya"
-        elif patient.id == "P003":
-            username = "arjun"
-        else:
-            username = patient.id.split("-")[1].lower() if "-" in patient.id else patient.name.lower().replace(" ", "")
-            
-        email = f"{username}@gmail.com"
-        
-        user_exists = db.query(User).filter(User.patient_id == patient.id).first()
-        if not user_exists:
-            print(f"[SEED] Seeding patient user account for {patient.name} ({username})...")
-            patient_user = User(
-                id=f"U-{patient.id}",
-                username=username,
-                email=email,
-                password="patient123",
-                role="patient",
-                patient_id=patient.id
-            )
-            db.add(patient_user)
+    # ── Patient accounts (one per seeded patient) ─────────────────────────────
+    PATIENT_ACCOUNTS = {
+        "P001": ("ramesh",  "ramesh@gmail.com",  "patient123"),
+        "P002": ("priya",   "priya@gmail.com",   "patient123"),
+        "P003": ("arjun",   "arjun@gmail.com",   "patient123"),
+    }
+
+    for patient_id, (username, email, password) in PATIENT_ACCOUNTS.items():
+        patient = db.query(Patient).filter(Patient.id == patient_id).first()
+        if not patient:
+            continue  # Patient not yet seeded — skip
+        if db.query(User).filter(User.id == f"U-{patient_id}").first():
+            continue  # Already exists
+
+        print(f"[SEED] Creating patient user — {username} / {password}")
+        db.add(User(
+            id=f"U-{patient_id}",
+            username=username,
+            email=email,
+            password=password,
+            role="patient",
+            patient_id=patient_id,
+        ))
+
     db.commit()
+    print("[SEED] ✅ User seeding complete.")
+    print("[SEED] 📋 Demo credentials:")
+    print("[SEED]   Doctor  → username: doctor   password: doctor123")
+    print("[SEED]   Patient → username: ramesh   password: patient123")
+    print("[SEED]   Patient → username: priya    password: patient123")
+    print("[SEED]   Patient → username: arjun    password: patient123")
+
+
 
 
 # ─────────────────────────────────────────────
