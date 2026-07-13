@@ -38,4 +38,8 @@ export const api = {
     method: 'POST',
     body: JSON.stringify({ username_or_email, password })
   }),
+  register: (payload) => req(DOCTOR_BASE, '/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  }),
 }

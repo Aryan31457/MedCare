@@ -13,7 +13,7 @@ from models import (
     Patient, Case, CarePlan, User,
     PatientCreate, PatientOut, CaseCreate,
     CaseSummary, CaseDetail, CarePlanOut, ApproveRequest, StatsOut,
-    LoginRequest, UserOut
+    LoginRequest, UserOut, RegisterRequest
 )
 from knowledge_base import SAMPLE_PATIENTS, SAMPLE_DISCHARGE_TEXTS, DISEASE_KG
 from nlp_service import extract_entities
@@ -430,6 +430,44 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Invalid username/email or password.")
         
     return user
+
+
+@app.post("/api/auth/register", response_model=UserOut, status_code=201, tags=["Authentication"])
+def register(data: RegisterRequest, db: Session = Depends(get_db)):
+    existing = db.query(User).filter(
+        (User.username == data.username) | (User.email == data.email)
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Username or Email already registered.")
+        
+    patient_id = None
+    if data.role == "patient":
+        if not data.name:
+            raise HTTPException(status_code=400, detail="Name is required for registering a patient.")
+        patient = Patient(
+            id=f"P-{str(uuid.uuid4())[:8].upper()}",
+            name=data.name,
+            age=data.age or 0,
+            sex=data.sex or "Male",
+            allergies=[]
+        )
+        db.add(patient)
+        db.flush()
+        patient_id = patient.id
+
+    user = User(
+        id=f"U-{str(uuid.uuid4())[:8].upper()}",
+        username=data.username,
+        email=data.email,
+        password=data.password,
+        role=data.role,
+        patient_id=patient_id
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
 
 
 # ─────────────────────────────────────────────

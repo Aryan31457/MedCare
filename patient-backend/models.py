@@ -128,6 +128,15 @@ class LoginRequest(BaseModel):
     username_or_email: str
     password: str
 
+class RegisterRequest(BaseModel):
+    username: str
+    email: str
+    password: str
+    role: str
+    name: Optional[str] = None
+    age: Optional[int] = None
+    sex: Optional[str] = None
+
 class UserOut(BaseModel):
     id: str
     username: str
