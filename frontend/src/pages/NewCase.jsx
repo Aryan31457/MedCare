@@ -129,7 +129,7 @@ export default function NewCase() {
         </div>
       </div>
 
-      <div className="page-content" style={{ maxWidth: 780 }}>
+      <div className="page-content">
         {/* Steps */}
         <div className="pipeline-steps" style={{ marginBottom: 32 }}>
           {['Patient Details', 'Discharge Document', 'Processing & Plan'].map((label, i) => (
