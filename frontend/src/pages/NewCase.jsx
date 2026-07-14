@@ -1,6 +1,44 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client.js'
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  Stepper,
+  Step,
+  StepLabel,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Grid,
+  Alert,
+  Paper,
+  Chip,
+  CircularProgress,
+  Divider,
+  ToggleButton,
+  ToggleButtonGroup,
+  OutlinedInput
+} from '@mui/material'
+import {
+  User,
+  Sparkles,
+  Binary,
+  ChevronRight,
+  ArrowLeft,
+  FileText,
+  Bot,
+  Activity,
+  Brain,
+  CheckCircle,
+  AlertTriangle,
+  Lightbulb
+} from 'lucide-react'
 
 const SAMPLES = {
   'Ramesh Kumar — Post-MI + T2DM + HTN (65M, Complex)': `DISCHARGE SUMMARY
@@ -87,7 +125,7 @@ const MODE_GEMINI = 'gemini'
 
 export default function NewCase() {
   const navigate = useNavigate()
-  const [step, setStep]       = useState(1)
+  const [activeStep, setActiveStep] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState(null)
   const [patient, setPatient] = useState({
@@ -122,7 +160,7 @@ export default function NewCase() {
           : [],
       })
       setPatientId(p.id)
-      setStep(2)
+      setActiveStep(1)
     } catch (err) { setError(err.message) }
     finally { setLoading(false) }
   }
@@ -132,7 +170,7 @@ export default function NewCase() {
     try {
       const c = await api.createCase({ patient_id: patientId, discharge_text: docText })
       setCaseId(c.id)
-      setStep(3)
+      setActiveStep(2)
     } catch (err) { setError(err.message) }
     finally { setLoading(false) }
   }
@@ -152,348 +190,398 @@ export default function NewCase() {
     finally { setLoading(false) }
   }
 
-  const STEPS = ['Patient Details', 'Discharge Document', 'Generate Plan']
+  const STEPS = ['Patient Profile', 'Discharge Text', 'AI Synthesis']
 
   return (
-    <>
-      <div className="topbar">
-        <div>
-          <div className="topbar-title">New Discharge Case</div>
-          <div className="topbar-sub">Register patient and generate a care plan</div>
-        </div>
-        <div className="topbar-right">
-          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/')}>← Back</button>
-        </div>
-      </div>
+    <Box>
+      {/* Topbar */}
+      <Box sx={{ 
+        bgcolor: 'background.paper', 
+        borderBottom: '1px solid #eee8e1', 
+        p: '18px 32px', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between'
+      }}>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.dark', letterSpacing: '-0.02em' }}>
+            New Discharge Case
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.2 }}>
+            Register patient details and generate home recovery plan
+          </Typography>
+        </Box>
+        <Button 
+          variant="outlined" 
+          startIcon={<ArrowLeft size={16} />}
+          onClick={() => navigate('/')}
+        >
+          Cancel
+        </Button>
+      </Box>
 
-      <div className="page-content">
-        {/* Step indicators */}
-        <div className="pipeline-steps" style={{ marginBottom: 32 }}>
-          {STEPS.map((label, i) => (
-            <div key={label} className="pipeline-step">
-              <div className={`step-circle ${step > i+1 ? 'done' : step === i+1 ? 'active' : 'pending'}`}>
-                {step > i+1 ? '✓' : i+1}
-              </div>
-              <div className="step-label">{label}</div>
-            </div>
+      <Box sx={{ p: 4, maxWidth: 800, mx: 'auto' }}>
+        {/* Stepper Component */}
+        <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 5 }}>
+          {STEPS.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
           ))}
-        </div>
+        </Stepper>
 
         {error && (
-          <div className="alert danger" style={{ marginBottom: 20 }}>
-            <span className="alert-icon">❌</span>
-            <div className="alert-content"><div className="alert-title">{error}</div></div>
-          </div>
+          <Alert severity="error" sx={{ mb: 4 }}>
+            {error}
+          </Alert>
         )}
 
-        {/* ── Step 1: Patient Details ── */}
-        {step === 1 && (
-          <div className="card">
-            <div className="card-header">
-              <div>
-                <div className="card-title">👤 Patient Demographics</div>
-                <div className="card-subtitle">Basic patient information for this discharge case</div>
-              </div>
-            </div>
-            <form onSubmit={handlePatient}>
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">Full Name *</label>
-                  <input className="form-input" required placeholder="Ramesh Kumar" value={patient.name} onChange={set('name')} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Age (years) *</label>
-                  <input className="form-input" type="number" required min={0} max={120} placeholder="65" value={patient.age} onChange={set('age')} />
-                </div>
-              </div>
-              <div className="form-row-3">
-                <div className="form-group">
-                  <label className="form-label">Sex *</label>
-                  <select className="form-select" value={patient.sex} onChange={set('sex')}>
-                    <option>Male</option><option>Female</option><option>Other</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Weight (kg)</label>
-                  <input className="form-input" type="number" step="0.1" placeholder="70.0" value={patient.weight_kg} onChange={set('weight_kg')} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Blood Group</label>
-                  <select className="form-select" value={patient.blood_group} onChange={set('blood_group')}>
-                    <option value="">Unknown</option>
-                    {['A+','A-','B+','B-','O+','O-','AB+','AB-'].map(bg => <option key={bg}>{bg}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Known Drug Allergies <span style={{ color: 'var(--text-muted)', textTransform: 'none', letterSpacing: 0 }}>(comma-separated, e.g. penicillin, sulfonamide)</span></label>
-                <input className="form-input" placeholder="penicillin, sulfonamide" value={patient.allergies} onChange={set('allergies')} />
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">Emergency Contact</label>
-                  <input className="form-input" placeholder="Name — Phone Number" value={patient.contact} onChange={set('contact')} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Address</label>
-                  <input className="form-input" placeholder="City, State" value={patient.address} onChange={set('address')} />
-                </div>
-              </div>
-              <button className="btn btn-primary btn-lg" type="submit" disabled={loading}>
-                {loading ? <><span className="spinner" /> Saving Patient...</> : 'Continue → Upload Document'}
-              </button>
-            </form>
-          </div>
+        {/* Step 1: Patient Profile */}
+        {activeStep === 0 && (
+          <Card>
+            <CardContent sx={{ p: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                <Box sx={{ color: 'primary.main' }}><User size={22} /></Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.dark' }}>Patient Demographics</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Input patient metadata to generate custom follow-ups</Typography>
+                </Box>
+              </Box>
+
+              <form onSubmit={handlePatient}>
+                <Grid container spacing={2.5}>
+                  <Grid item xs={12} sm={8}>
+                    <TextField
+                      fullWidth
+                      label="Full Name"
+                      placeholder="Ramesh Kumar"
+                      value={patient.name}
+                      onChange={set('name')}
+                      required
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      fullWidth
+                      label="Age (years)"
+                      type="number"
+                      placeholder="65"
+                      value={patient.age}
+                      onChange={set('age')}
+                      required
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={4}>
+                    <FormControl fullWidth>
+                      <InputLabel>Sex</InputLabel>
+                      <Select value={patient.sex} label="Sex" onChange={set('sex')}>
+                        <MenuItem value="Male">Male</MenuItem>
+                        <MenuItem value="Female">Female</MenuItem>
+                        <MenuItem value="Other">Other</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <FormControl fullWidth>
+                      <InputLabel>Weight (kg)</InputLabel>
+                      <OutlinedInput
+                        type="number"
+                        inputProps={{ step: '0.1' }}
+                        label="Weight (kg)"
+                        placeholder="70.0"
+                        value={patient.weight_kg}
+                        onChange={set('weight_kg')}
+                      />
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <FormControl fullWidth>
+                      <InputLabel>Blood Group</InputLabel>
+                      <Select value={patient.blood_group} label="Blood Group" onChange={set('blood_group')}>
+                        <MenuItem value="">Unknown</MenuItem>
+                        {['A+','A-','B+','B-','O+','O-','AB+','AB-'].map(bg => (
+                          <MenuItem key={bg} value={bg}>{bg}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Known Drug Allergies"
+                      placeholder="e.g. penicillin, sulfonamide (comma separated)"
+                      value={patient.allergies}
+                      onChange={set('allergies')}
+                      helperText="If no allergies, leave blank or type none."
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Emergency Contact Info"
+                      placeholder="Name — Phone Number"
+                      value={patient.contact}
+                      onChange={set('contact')}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Address"
+                      placeholder="City, State"
+                      value={patient.address}
+                      onChange={set('address')}
+                    />
+                  </Grid>
+                </Grid>
+
+                <Divider sx={{ my: 3.5 }} />
+
+                <Button
+                  variant="contained"
+                  type="submit"
+                  fullWidth
+                  disabled={loading}
+                  sx={{ height: 48, fontSize: '0.95rem' }}
+                >
+                  {loading ? <CircularProgress size={24} color="inherit" /> : <>Continue to Document Upload <ChevronRight size={16} style={{ marginLeft: 6 }} /></>}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
         )}
 
-        {/* ── Step 2: Discharge Document ── */}
-        {step === 2 && (
-          <div className="card">
-            <div className="card-header">
-              <div>
-                <div className="card-title">📄 Discharge Document</div>
-                <div className="card-subtitle">Paste the discharge summary text (OCR output or typed)</div>
-              </div>
-            </div>
+        {/* Step 2: Discharge Document */}
+        {activeStep === 1 && (
+          <Card>
+            <CardContent sx={{ p: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                <Box sx={{ color: 'primary.main' }}><FileText size={22} /></Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.dark' }}>Discharge Summary Text</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Paste clinical diagnosis notes, prescriptions, and vital thresholds</Typography>
+                </Box>
+              </Box>
 
-            <div className="alert info" style={{ marginBottom: 20 }}>
-              <span className="alert-icon">💡</span>
-              <div className="alert-content">
-                <div className="alert-title">Load a sample document to demo the system</div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+              <Alert severity="info" icon={<Lightbulb size={20} />} sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>Sandbox Sandbox Demo templates:</Typography>
+                <Box sx={{ display: 'flex', gap: 1.2, flexWrap: 'wrap', mt: 1 }}>
                   {Object.keys(SAMPLES).map(k => (
-                    <button key={k} type="button" className="btn btn-ghost btn-sm" onClick={() => setDocText(SAMPLES[k])}>
+                    <Button 
+                      key={k} 
+                      variant="outlined" 
+                      size="small" 
+                      onClick={() => setDocText(SAMPLES[k])}
+                      sx={{ bgcolor: 'background.paper', fontSize: '0.75rem', py: 0.5 }}
+                    >
                       {k.split('—')[0].trim()}
-                    </button>
+                    </Button>
                   ))}
-                </div>
-              </div>
-            </div>
+                </Box>
+              </Alert>
 
-            <form onSubmit={handleCase}>
-              <div className="form-group">
-                <label className="form-label">Discharge Summary Text *</label>
-                <textarea
-                  className="form-textarea"
-                  style={{ minHeight: 340, fontFamily: 'Courier New, monospace', fontSize: '0.82rem', lineHeight: 1.7 }}
-                  required
-                  placeholder="Paste discharge summary here — or click a sample above to load demo data..."
+              <form onSubmit={handleCase}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={12}
+                  label="Discharge Summary text"
+                  placeholder="Paste medical text here..."
                   value={docText}
                   onChange={e => setDocText(e.target.value)}
+                  required
+                  sx={{ 
+                    mb: 1.5,
+                    '& .MuiInputBase-input': { fontFamily: 'Courier New, monospace', fontSize: '0.82rem', lineHeight: 1.6 }
+                  }}
                 />
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 6 }}>
-                  {docText.length} characters · {docText.split('\n').length} lines
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button type="button" className="btn btn-ghost" onClick={() => setStep(1)}>← Edit Patient</button>
-                <button className="btn btn-primary btn-lg" type="submit" disabled={loading || !docText.trim()}>
-                  {loading ? <><span className="spinner" /> Creating Case...</> : '🚀 Continue → Choose AI Mode'}
-                </button>
-              </div>
-            </form>
-          </div>
+                <Typography variant="caption" sx={{ display: 'block', textAlign: 'right', color: 'text.secondary', mb: 3.5 }}>
+                  {docText.length} characters · {docText.trim() ? docText.split('\n').length : 0} lines
+                </Typography>
+
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button variant="outlined" onClick={() => setActiveStep(0)} sx={{ flex: 1, height: 46 }}>
+                    Edit Demographics
+                  </Button>
+                  <Button variant="contained" type="submit" disabled={loading || !docText.trim()} sx={{ flex: 2, height: 46 }}>
+                    {loading ? <CircularProgress size={24} color="inherit" /> : <>Upload & Continue <ChevronRight size={16} style={{ marginLeft: 6 }} /></>}
+                  </Button>
+                </Box>
+              </form>
+            </CardContent>
+          </Card>
         )}
 
-        {/* ── Step 3: AI Mode Selector + Generate ── */}
-        {step === 3 && (
-          <div className="card">
-            <div className="card-header">
-              <div>
-                <div className="card-title">🤖 Choose Generation Method</div>
-                <div className="card-subtitle">Select how you want the care plan to be generated</div>
-              </div>
-            </div>
+        {/* Step 3: Synthesis Selection */}
+        {activeStep === 2 && (
+          <Card>
+            <CardContent sx={{ p: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                <Box sx={{ color: 'primary.main' }}><Bot size={22} /></Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.dark' }}>Generation Logic</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Choose the rule synthesis backend</Typography>
+                </Box>
+              </Box>
 
-            {/* AI Mode Toggle */}
-            <div style={{ display: 'flex', gap: 16, marginBottom: 28 }}>
-              {/* NLP Card */}
-              <div
-                id="mode-nlp"
-                onClick={() => setAiMode(MODE_NLP)}
-                style={{
-                  flex: 1, cursor: 'pointer', borderRadius: 14, padding: '20px 22px',
-                  border: `2px solid ${aiMode === MODE_NLP ? 'var(--primary)' : 'var(--border)'}`,
-                  background: aiMode === MODE_NLP ? 'rgba(99,102,241,0.08)' : 'var(--surface)',
-                  transition: 'all 0.2s',
-                  boxShadow: aiMode === MODE_NLP ? '0 0 0 3px rgba(99,102,241,0.15)' : 'none',
-                }}
-              >
-                <div style={{ fontSize: '1.8rem', marginBottom: 8 }}>🔬</div>
-                <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)', marginBottom: 4 }}>Rule-Based NLP</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                  Fast, deterministic. Uses keyword extraction + hard-coded medical rules. Works offline. Best for known diagnoses.
-                </div>
-                <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  <span style={tagStyle('#22c55e')}>⚡ Instant</span>
-                  <span style={tagStyle('#6366f1')}>🔒 Offline</span>
-                  <span style={tagStyle('#f59e0b')}>6 diseases</span>
-                </div>
-              </div>
-
-              {/* Gemini Card */}
-              <div
-                id="mode-gemini"
-                onClick={() => geminiReady && setAiMode(MODE_GEMINI)}
-                style={{
-                  flex: 1, cursor: geminiReady ? 'pointer' : 'not-allowed',
-                  borderRadius: 14, padding: '20px 22px',
-                  border: `2px solid ${aiMode === MODE_GEMINI ? '#a855f7' : 'var(--border)'}`,
-                  background: aiMode === MODE_GEMINI
-                    ? 'rgba(168,85,247,0.08)'
-                    : geminiReady ? 'var(--surface)' : 'rgba(0,0,0,0.03)',
-                  opacity: geminiReady ? 1 : 0.6,
-                  transition: 'all 0.2s',
-                  boxShadow: aiMode === MODE_GEMINI ? '0 0 0 3px rgba(168,85,247,0.18)' : 'none',
-                  position: 'relative',
-                }}
-              >
-                {!geminiReady && (
-                  <div style={{
-                    position: 'absolute', top: 10, right: 12,
-                    background: '#f59e0b', color: '#fff',
-                    fontSize: '0.65rem', fontWeight: 700,
-                    padding: '2px 8px', borderRadius: 20,
-                  }}>API KEY REQUIRED</div>
-                )}
-                <div style={{ fontSize: '1.8rem', marginBottom: 8 }}>✨</div>
-                <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)', marginBottom: 4 }}>
-                  Gemini AI
-                  <span style={{ marginLeft: 8, fontSize: '0.65rem', fontWeight: 600,
-                    background: 'linear-gradient(135deg,#a855f7,#6366f1)', color:'#fff',
-                    padding:'2px 8px', borderRadius:20 }}>NEW</span>
-                </div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                  AI-powered. Understands free-text clinically. Handles any diagnosis, drug, or language. Generates richer, personalized plans.
-                </div>
-                <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  <span style={tagStyle('#a855f7')}>🧠 Intelligent</span>
-                  <span style={tagStyle('#6366f1')}>📋 Any diagnosis</span>
-                  <span style={tagStyle('#ec4899')}>🌐 Cloud</span>
-                </div>
-                {!geminiReady && (
-                  <div style={{ marginTop: 12, fontSize: '0.75rem', color: 'var(--amber)',
-                    background: 'rgba(245,158,11,0.1)', borderRadius: 8, padding: '6px 10px' }}>
-                    Add your key to <code style={{ fontFamily: 'monospace' }}>backend/.env</code> → <code>GEMINI_API_KEY=...</code>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Selected mode summary */}
-            <div style={{
-              background: aiMode === MODE_GEMINI
-                ? 'linear-gradient(135deg,rgba(168,85,247,0.08),rgba(99,102,241,0.08))'
-                : 'rgba(99,102,241,0.06)',
-              border: `1px solid ${aiMode === MODE_GEMINI ? 'rgba(168,85,247,0.3)' : 'rgba(99,102,241,0.2)'}`,
-              borderRadius: 10, padding: '14px 18px', marginBottom: 24,
-              display: 'flex', alignItems: 'center', gap: 12,
-            }}>
-              <span style={{ fontSize: '1.4rem' }}>{aiMode === MODE_GEMINI ? '✨' : '🔬'}</span>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                  {aiMode === MODE_GEMINI ? 'Gemini AI selected' : 'Rule-Based NLP selected'}
-                </div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  {aiMode === MODE_GEMINI
-                    ? 'The discharge text will be sent directly to Gemini 2.0 Flash. No NLP pre-processing needed.'
-                    : 'Discharge text will be parsed by keyword NLP → rule engine → template generator.'}
-                </div>
-              </div>
-            </div>
-
-            {/* Generate button */}
-            {!genResult && (
-              <button
-                id="btn-generate-plan"
-                className="btn btn-primary btn-lg"
-                onClick={handleGenerate}
-                disabled={loading}
-                style={{
-                  background: aiMode === MODE_GEMINI
-                    ? 'linear-gradient(135deg,#a855f7,#6366f1)'
-                    : undefined,
-                  width: '100%',
-                }}
-              >
-                {loading
-                  ? <><span className="spinner" /> {aiMode === MODE_GEMINI ? 'Gemini is thinking...' : 'Processing & Generating...'}</>
-                  : aiMode === MODE_GEMINI
-                    ? '✨ Generate with Gemini AI'
-                    : '🔬 Generate with NLP Engine'}
-              </button>
-            )}
-
-            {/* Success result */}
-            {genResult && (
-              <div style={{ marginTop: 4 }}>
-                {/* Fallback warning if Gemini was tried but NLP was used */}
-                {genResult.fallback_used && (
-                  <div style={{
-                    background: 'rgba(245,158,11,0.08)',
-                    border: '1px solid rgba(245,158,11,0.35)',
-                    borderRadius: 10, padding: '12px 16px',
-                    display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 12,
-                  }}>
-                    <span style={{ fontSize: '1.2rem' }}>⚠️</span>
-                    <div>
-                      <div style={{ fontWeight: 600, color: '#f59e0b', marginBottom: 2, fontSize: '0.88rem' }}>
-                        Gemini unavailable — fell back to NLP Engine
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        {genResult.fallback_reason}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div style={{
-                  background: 'rgba(34,197,94,0.08)',
-                  border: '1px solid rgba(34,197,94,0.3)',
-                  borderRadius: 10, padding: '16px 20px',
-                  display: 'flex', gap: 14, alignItems: 'flex-start', marginBottom: 16,
-                }}>
-                  <span style={{ fontSize: '1.5rem' }}>✅</span>
-                  <div>
-                    <div style={{ fontWeight: 700, color: '#22c55e', marginBottom: 4 }}>
-                      Care Plan Generated Successfully!
-                    </div>
-                    <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                      <span>Method: <strong>{genResult.generation_method === 'gemini' ? '✨ Gemini AI' : '🔬 Rule-Based NLP'}</strong></span>
-                      <span>Confidence: <strong>{Math.round((genResult.confidence_score || 0) * 100)}%</strong></span>
-                      <span>Needs Review: <strong>{genResult.requires_review ? '⚠️ Yes' : '✅ No'}</strong></span>
-                    </div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <button
-                    className="btn btn-primary btn-lg"
-                    onClick={() => navigate(`/cases/${caseId}`)}
-                    style={{ flex: 1 }}
+              <Grid container spacing={3} sx={{ mb: 4 }}>
+                {/* Rule-Based NLP Mode */}
+                <Grid item xs={12} sm={6}>
+                  <Paper 
+                    onClick={() => setAiMode(MODE_NLP)}
+                    sx={{ 
+                      p: 3, 
+                      cursor: 'pointer',
+                      borderRadius: 4,
+                      border: '2px solid',
+                      borderColor: aiMode === MODE_NLP ? 'primary.main' : 'divider',
+                      bgcolor: aiMode === MODE_NLP ? 'primary.light' + '08' : 'background.paper',
+                      transition: 'all 0.25s ease',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between'
+                    }}
                   >
-                    View Case & Care Plan →
-                  </button>
-                  <button
-                    className="btn btn-ghost"
-                    onClick={() => { setGenResult(null); setError(null) }}
+                    <Box>
+                      <Box sx={{ color: 'primary.main', mb: 1.5 }}><Binary size={28} /></Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary', mb: 1 }}>Deterministic NLP</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem', lineHeight: 1.5 }}>
+                        Resolves keyword extractions & matches to database templates offline. Safe and structured.
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                      <Chip label="Offline" size="small" sx={{ fontSize: '0.68rem', bgcolor: 'primary.light' + '15', color: 'primary.dark' }} />
+                      <Chip label="Instant" size="small" sx={{ fontSize: '0.68rem', bgcolor: 'primary.light' + '15', color: 'primary.dark' }} />
+                    </Box>
+                  </Paper>
+                </Grid>
+
+                {/* Gemini AI Mode */}
+                <Grid item xs={12} sm={6}>
+                  <Paper 
+                    onClick={() => geminiReady && setAiMode(MODE_GEMINI)}
+                    sx={{ 
+                      p: 3, 
+                      cursor: geminiReady ? 'pointer' : 'not-allowed',
+                      borderRadius: 4,
+                      border: '2px solid',
+                      borderColor: aiMode === MODE_GEMINI ? '#8b5cf6' : 'divider',
+                      bgcolor: aiMode === MODE_GEMINI ? 'rgba(139, 92, 246, 0.05)' : geminiReady ? 'background.paper' : 'rgba(0,0,0,0.02)',
+                      opacity: geminiReady ? 1 : 0.65,
+                      transition: 'all 0.25s ease',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      position: 'relative'
+                    }}
                   >
-                    Regenerate
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+                    {!geminiReady && (
+                      <Chip 
+                        label="Key Pending" 
+                        size="small" 
+                        color="warning" 
+                        sx={{ position: 'absolute', top: 12, right: 12, fontSize: '0.65rem', fontWeight: 800 }} 
+                      />
+                    )}
+                    <Box>
+                      <Box sx={{ color: geminiReady ? '#8b5cf6' : 'text.disabled', mb: 1.5 }}><Sparkles size={28} /></Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary', mb: 1 }}>Gemini AI Model</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem', lineHeight: 1.5 }}>
+                        Sends text payload to Gemini models. Resolves complex free-text, unstructured follow-up directions.
+                      </Typography>
+                    </Box>
+                    <Box sx={{ mt: 2 }}>
+                      {geminiReady ? (
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Chip label="Cloud AI" size="small" sx={{ fontSize: '0.68rem', bgcolor: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }} />
+                          <Chip label="Free Text" size="small" sx={{ fontSize: '0.68rem', bgcolor: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }} />
+                        </Box>
+                      ) : (
+                        <Typography sx={{ fontSize: '0.72rem', color: 'warning.main', bgcolor: 'rgba(234, 88, 12, 0.08)', p: 1, borderRadius: 1.5 }}>
+                          Add your key to the backend environment variables to enable.
+                        </Typography>
+                      )}
+                    </Box>
+                  </Paper>
+                </Grid>
+              </Grid>
+
+              {/* Generate actions */}
+              {!genResult && (
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={handleGenerate}
+                  disabled={loading}
+                  sx={{
+                    height: 48,
+                    fontSize: '0.95rem',
+                    background: aiMode === MODE_GEMINI ? 'linear-gradient(135deg,#8b5cf6,#6366f1)' : 'primary.main',
+                    '&:hover': {
+                      background: aiMode === MODE_GEMINI ? 'linear-gradient(135deg,#7c3aed,#4f46e5)' : 'primary.dark',
+                    }
+                  }}
+                >
+                  {loading ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : aiMode === MODE_GEMINI ? (
+                    'Synthesize Plan with Gemini AI'
+                  ) : (
+                    'Run Extraction & Rule Compile'
+                  )}
+                </Button>
+              )}
+
+              {/* Success Result Panel */}
+              {genResult && (
+                <Box>
+                  {genResult.fallback_used && (
+                    <Alert severity="warning" sx={{ mb: 2.5 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Gemini AI Offline Fallback</Typography>
+                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>{genResult.fallback_reason}</Typography>
+                    </Alert>
+                  )}
+
+                  <Alert 
+                    severity="success" 
+                    icon={<CheckCircle size={20} />} 
+                    sx={{ mb: 3 }}
+                  >
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>Care Plan Compiled Successfully!</Typography>
+                    <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mt: 1 }}>
+                      <Typography variant="caption">Backend: <strong>{genResult.generation_method === 'gemini' ? 'Gemini AI' : 'NLP rules'}</strong></Typography>
+                      <Typography variant="caption">Confidence Score: <strong>{Math.round((genResult.confidence_score || 0) * 100)}%</strong></Typography>
+                      <Typography variant="caption">Requires Audit: <strong>{genResult.requires_review ? 'Yes' : 'No'}</strong></Typography>
+                    </Box>
+                  </Alert>
+
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <Button
+                      variant="contained"
+                      onClick={() => navigate(`/cases/${caseId}`)}
+                      sx={{ flex: 2, height: 46 }}
+                    >
+                      Open Case Folder
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      onClick={() => { setGenResult(null); setError(null) }}
+                      sx={{ flex: 1, height: 46 }}
+                    >
+                      Reset
+                    </Button>
+                  </Box>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
         )}
-      </div>
-    </>
+      </Box>
+    </Box>
   )
-}
-
-function tagStyle(color) {
-  return {
-    fontSize: '0.7rem', fontWeight: 600,
-    padding: '2px 8px', borderRadius: 20,
-    background: `${color}20`, color: color,
-    border: `1px solid ${color}40`,
-  }
 }

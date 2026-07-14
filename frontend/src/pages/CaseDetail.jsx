@@ -1,8 +1,39 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../api/client.js'
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Stepper,
+  Step,
+  StepLabel,
+  Grid,
+  Chip,
+  Alert,
+  Paper,
+  Divider,
+  CircularProgress
+} from '@mui/material'
+import { 
+  ArrowLeft, 
+  Activity, 
+  Pill, 
+  FlaskConical, 
+  AlertTriangle, 
+  HeartPulse, 
+  ShieldAlert, 
+  FileText,
+  User,
+  Brain,
+  CheckCircle,
+  Sparkles,
+  ClipboardCheck
+} from 'lucide-react'
 
-const STEPS = ['Document Uploaded', 'Entities Extracted', 'Rules Applied', 'Plan Generated & Approved']
+const STEPS = ['Document Uploaded', 'Entities Extracted', 'Rules Applied', 'Plan Approved']
 const STEP_FOR_STATUS = { uploaded: 1, processing: 2, review_required: 3, ready: 3, approved: 4 }
 
 export default function CaseDetail() {
@@ -33,257 +64,342 @@ export default function CaseDetail() {
   }
 
   if (loading) return <div className="page-content"><div className="skeleton" style={{ height: 500, borderRadius: 16, marginTop: 32 }} /></div>
-  if (!data)   return <div className="page-content"><div className="alert danger"><span className="alert-icon">❌</span><div>Case not found</div></div></div>
+  if (!data)   return <div className="page-content"><Alert severity="error">Case folder not found.</Alert></div>
 
   const { patient, extracted_entities: ent, resolved_rules: rules, status, human_review_flags: flags = [] } = data
   const isProcessed = !!ent
   const step = STEP_FOR_STATUS[status] || 1
 
   return (
-    <>
-      <div className="topbar">
-        <div>
-          <div className="topbar-title">{patient?.name || 'Case Detail'}</div>
-          <div className="topbar-sub">Case {id} · {patient?.age}y {patient?.sex}</div>
-        </div>
-        <div className="topbar-right page-actions">
+    <Box>
+      {/* Topbar navigation details */}
+      <Box sx={{ 
+        bgcolor: 'background.paper', 
+        borderBottom: '1px solid #eee8e1', 
+        p: '18px 32px', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between'
+      }}>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.dark', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 1 }}>
+            <ClipboardCheck size={24} /> {patient?.name || 'Case Folder'}
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.2 }}>
+            Case ID: {id} · {patient?.age}y {patient?.sex} · Ref Status: {status.replace(/_/g, ' ')}
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           {!isProcessed && (
-            <button className="btn btn-primary" onClick={handleProcess} disabled={processing}>
-              {processing ? <><span className="spinner" /> Extracting…</> : '🔬 Run NLP & Rule Engine'}
-            </button>
+            <Button variant="contained" onClick={handleProcess} disabled={processing} startIcon={<Sparkles size={16} />}>
+              {processing ? 'Running Engine...' : 'Run Extraction'}
+            </Button>
           )}
           {isProcessed && !data.has_care_plan && (
-            <button className="btn btn-success" onClick={handleGenerate} disabled={generating}>
-              {generating ? <><span className="spinner" /> Generating…</> : '🤖 Generate Care Plan'}
-            </button>
+            <Button variant="contained" color="success" onClick={handleGenerate} disabled={generating} startIcon={<Brain size={16} />}>
+              {generating ? 'Compiling Plan...' : 'Compile Care Plan'}
+            </Button>
           )}
           {data.has_care_plan && (
-            <button className="btn btn-primary" onClick={() => navigate(`/cases/${id}/plan`)}>
-              📋 View Care Plan →
-            </button>
+            <Button variant="contained" onClick={() => navigate(`/cases/${id}/plan`)} startIcon={<FileText size={16} />}>
+              View Care Plan
+            </Button>
           )}
-          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/')}>← Dashboard</button>
-        </div>
-      </div>
+          <Button variant="outlined" size="small" onClick={() => navigate('/')} startIcon={<ArrowLeft size={14} />}>
+            Dashboard
+          </Button>
+        </Box>
+      </Box>
 
-      <div className="page-content">
+      <Box sx={{ p: 4 }}>
         {error && (
-          <div className="alert danger" style={{ marginBottom: 20 }}>
-            <span className="alert-icon">❌</span>
-            <div className="alert-content"><div className="alert-title">{error}</div></div>
-          </div>
+          <Alert severity="error" sx={{ mb: 4 }}>{error}</Alert>
         )}
 
-        {/* Pipeline Progress */}
-        <div className="card" style={{ marginBottom: 20 }}>
-          <div className="card-subtitle" style={{ marginBottom: 16 }}>Processing Pipeline</div>
-          <div className="pipeline-steps">
-            {STEPS.map((label, i) => (
-              <div key={label} className="pipeline-step">
-                <div className={`step-circle ${step > i+1 ? 'done' : step === i+1 ? 'active' : 'pending'}`}>
-                  {step > i+1 ? '✓' : i+1}
-                </div>
-                <div className="step-label">{label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Clinical Pipeline Stepper */}
+        <Card sx={{ mb: 4 }}>
+          <CardContent sx={{ p: 3, '&:last-child': { pb: 3 } }}>
+            <Typography variant="body2" sx={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'text.secondary', mb: 2 }}>
+              Clinical Extraction Pipeline
+            </Typography>
+            <Stepper activeStep={step - 1} alternativeLabel>
+              {STEPS.map((label) => (
+                <Step key={label}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          </CardContent>
+        </Card>
 
-        <div className="two-col" style={{ marginBottom: 20 }}>
-          {/* Patient Card */}
-          <div className="card">
-            <div className="card-header">
-              <div className="card-title">👤 Patient Profile</div>
-              <div className={`badge ${status}`}><span className="badge-dot" />{status.replace(/_/g,' ')}</div>
-            </div>
-            {[
-              ['Name', patient?.name],
-              ['Age / Sex', `${patient?.age}y / ${patient?.sex}`],
-              ['Weight', patient?.weight_kg ? `${patient.weight_kg} kg` : '—'],
-              ['Blood Group', patient?.blood_group || '—'],
-              ['Contact', patient?.contact || '—'],
-            ].map(([k, v]) => (
-              <div key={k} className="info-row">
-                <span className="info-key">{k}</span>
-                <span className="info-val">{v}</span>
-              </div>
-            ))}
-            <div className="info-row">
-              <span className="info-key">Allergies</span>
-              <span className="info-val" style={{ color: patient?.allergies?.length ? '#fca5a5' : 'var(--green)', fontWeight: 600 }}>
-                {patient?.allergies?.length ? patient.allergies.join(', ').toUpperCase() : '✅ NKDA'}
-              </span>
-            </div>
-          </div>
+        {/* Profile Card & Alerts Columns */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(12, 1fr)' }, gap: 3, mb: 4 }}>
+          <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 5' } }}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, pb: 1, borderBottom: '1px dashed #eee8e1' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.dark', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <User size={18} /> Demographics
+                  </Typography>
+                  <Chip size="small" label={status.replace(/_/g, ' ')} color="primary" variant="outlined" sx={{ fontWeight: 700, fontSize: '0.68rem', textTransform: 'uppercase' }} />
+                </Box>
 
-          {/* Flags / Document Preview */}
-          {flags.length > 0 ? (
-            <div className="card">
-              <div className="card-header">
-                <div className="card-title">🚩 Review Flags</div>
-                <span className="flag-count critical">{flags.length}</span>
-              </div>
-              <div style={{ maxHeight: 280, overflowY: 'auto' }}>
-                {flags.map((f, i) => (
-                  <div key={i} className={`flag-card ${f.severity}`}>
-                    <span className={`flag-severity ${f.severity}`}>{f.severity}</span>
-                    <div className="flag-title">{f.title}</div>
-                    <div className="flag-message">{f.message}</div>
-                    <div className="flag-action">→ {f.action_required}</div>
-                  </div>
+                {[
+                  ['Patient Name', patient?.name],
+                  ['Age / Sex', `${patient?.age}y / ${patient?.sex}`],
+                  ['Weight (kg)', patient?.weight_kg ? `${patient.weight_kg} kg` : '—'],
+                  ['Blood Group', patient?.blood_group || '—'],
+                  ['Emergency Contact', patient?.contact || '—'],
+                ].map(([k, v]) => (
+                  <Box key={k} sx={{ display: 'flex', justifyContent: 'space-between', py: 1.2, borderBottom: '1px dashed #eee8e1', '&:last-child': { borderBottom: 0 } }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>{k}</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>{v}</Typography>
+                  </Box>
                 ))}
-              </div>
-            </div>
-          ) : (
-            <div className="card">
-              <div className="card-title" style={{ marginBottom: 12 }}>📄 Discharge Document Preview</div>
-              <pre style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'Courier New, monospace', maxHeight: 260, overflowY: 'auto', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
-                {data.discharge_text?.slice(0, 700)}{data.discharge_text?.length > 700 ? '\n...' : ''}
-              </pre>
-            </div>
-          )}
-        </div>
+                
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1.2 }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>Known Allergies</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: patient?.allergies?.length ? 'error.main' : 'success.main' }}>
+                    {patient?.allergies?.length ? patient.allergies.join(', ').toUpperCase() : 'NKDA (None Known)'}
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Box>
 
-        {/* Extracted Entities */}
+          <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 7' } }}>
+            {flags.length > 0 ? (
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ p: 3, pb: 1, borderBottom: '1px dashed #eee8e1', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.dark', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AlertTriangle size={18} style={{ color: '#e11d48' }} /> Audit Warnings
+                  </Typography>
+                  <Chip size="small" label={`${flags.length} Flags`} color="error" sx={{ fontWeight: 800 }} />
+                </Box>
+                <Box sx={{ p: 3, flex: 1, overflowY: 'auto', maxHeight: 270 }}>
+                  {flags.map((f, i) => (
+                    <Alert 
+                      key={i} 
+                      severity={f.severity === 'critical' ? 'error' : f.severity === 'high' ? 'warning' : 'info'}
+                      sx={{ mb: 2, '&:last-child': { mb: 0 } }}
+                    >
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{f.title}</Typography>
+                      <Typography variant="body2" sx={{ fontSize: '0.8rem', mt: 0.2 }}>{f.message}</Typography>
+                      <Typography variant="caption" sx={{ display: 'block', mt: 0.8, fontWeight: 700, color: 'text.primary' }}>
+                        Action: {f.action_required}
+                      </Typography>
+                    </Alert>
+                  ))}
+                </Box>
+              </Card>
+            ) : (
+              <Card sx={{ height: '100%' }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.dark', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <FileText size={18} /> Discharge Summary Data
+                  </Typography>
+                  <Box sx={{ 
+                    bgcolor: 'background.default', 
+                    border: '1px solid #eee8e1', 
+                    borderRadius: 3, 
+                    p: 2,
+                    maxHeight: 250,
+                    overflowY: 'auto'
+                  }}>
+                    <pre style={{ 
+                      fontSize: '0.78rem', 
+                      color: '#4b5563', 
+                      fontFamily: 'Courier New, monospace', 
+                      lineHeight: 1.5, 
+                      whiteSpace: 'pre-wrap',
+                      margin: 0
+                    }}>
+                      {data.discharge_text}
+                    </pre>
+                  </Box>
+                </CardContent>
+              </Card>
+            )}
+          </Box>
+        </Box>
+
+        {/* Extracted Findings Card */}
         {isProcessed && ent && (
-          <div className="card">
-            <div className="card-header">
-              <div className="card-title">🔬 Extracted Clinical Entities</div>
-              <div className="card-subtitle">
-                {ent.diseases?.length} diseases · {ent.drugs?.length} drugs · {ent.lab_values?.length} labs · {ent.allergies?.length} allergies
-              </div>
-            </div>
+          <Card>
+            <CardContent sx={{ p: 4 }}>
+              <Box sx={{ borderBottom: '1px dashed #eee8e1', pb: 2, mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.dark', display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Activity size={18} /> Clinical Findings Profile
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.2 }}>
+                  Entity profiles extracted from discharge summary payload
+                </Typography>
+              </Box>
 
-            {/* Diseases */}
-            {ent.diseases?.length > 0 && (
-              <div className="entity-section">
-                <div className="entity-section-title">🏥 Diagnoses</div>
-                <div className="entity-tags">
-                  {ent.diseases.map(d => (
-                    <span key={d.code} className="entity-tag disease">
-                      🔵 {d.name}
-                      <span style={{ fontSize: '0.68rem', opacity: 0.6 }}> · {d.icd10}</span>
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {/* Diagnoses */}
+                {ent.diseases?.length > 0 && (
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'primary.dark', display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                      <HeartPulse size={16} /> Extracted Diagnoses
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      {ent.diseases.map(d => (
+                        <Chip 
+                          key={d.code}
+                          label={`${d.name} (${d.icd10})`}
+                          sx={{ bgcolor: 'primary.light' + '10', color: 'primary.dark', border: '1px solid', borderColor: 'primary.light' + '25' }}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                )}
 
-            {/* Drugs */}
-            {ent.drugs?.length > 0 && (
-              <div className="entity-section">
-                <div className="entity-section-title">💊 Medications</div>
-                <div className="entity-tags">
-                  {ent.drugs.map(d => (
-                    <span key={d.code} className="entity-tag drug">
-                      💊 {d.name}
-                      {d.dose && <span style={{ fontSize: '0.7rem', opacity: 0.7 }}> {d.dose}</span>}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+                {/* Prescriptions */}
+                {ent.drugs?.length > 0 && (
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'primary.dark', display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                      <Pill size={16} /> Extracted Prescriptions
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      {ent.drugs.map(d => (
+                        <Chip 
+                          key={d.code}
+                          label={`${d.name} ${d.dose ? `(${d.dose})` : ''}`}
+                          sx={{ bgcolor: 'info.light' + '10', color: 'info.dark', border: '1px solid', borderColor: 'info.light' + '25' }}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                )}
 
-            {/* Labs */}
-            {ent.lab_values?.length > 0 && (
-              <div className="entity-section">
-                <div className="entity-section-title">🧪 Lab Values</div>
-                <div className="entity-tags">
-                  {ent.lab_values.map(l => (
-                    <span key={l.test} className="entity-tag lab"
-                      style={l.is_critical ? { borderColor:'rgba(239,68,68,0.45)', background:'rgba(239,68,68,0.08)' } : {}}>
-                      🧪 {l.test}: <strong style={{ marginLeft: 4 }}>{l.value} {l.unit}</strong>
-                      {l.is_critical && <span className="crit-badge">CRITICAL</span>}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+                {/* Lab parameters */}
+                {ent.lab_values?.length > 0 && (
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'primary.dark', display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                      <FlaskConical size={16} /> Lab Measurements
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      {ent.lab_values.map(l => (
+                        <Chip 
+                          key={l.test}
+                          label={`${l.test}: ${l.value} ${l.unit}`}
+                          color={l.is_critical ? 'error' : 'default'}
+                          variant={l.is_critical ? 'filled' : 'outlined'}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                )}
 
-            {/* Allergies */}
-            {ent.allergies?.length > 0 && (
-              <div className="entity-section">
-                <div className="entity-section-title">⛔ Extracted Allergies</div>
-                <div className="entity-tags">
-                  {ent.allergies.map(a => (
-                    <span key={a.allergen} className="entity-tag allergy">⛔ {a.allergen.toUpperCase()}</span>
-                  ))}
-                </div>
-              </div>
-            )}
+                {/* Allergens */}
+                {ent.allergies?.length > 0 && (
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'error.main', display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                      <ShieldAlert size={16} /> Allergen Indicators
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      {ent.allergies.map(a => (
+                        <Chip 
+                          key={a.allergen}
+                          label={a.allergen.toUpperCase()}
+                          color="error"
+                          variant="outlined"
+                          sx={{ fontWeight: 700 }}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                )}
 
-            {/* Vitals */}
-            {ent.vitals && Object.keys(ent.vitals).length > 0 && (
-              <div className="entity-section">
-                <div className="entity-section-title">❤️ Vitals Extracted</div>
-                <div className="entity-tags">
-                  {Object.entries(ent.vitals).map(([k, v]) => (
-                    <span key={k} className="entity-tag vital">
-                      {k.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}: {v}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+                {/* Vitals */}
+                {ent.vitals && Object.keys(ent.vitals).length > 0 && (
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'primary.dark', display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                      <Activity size={16} /> Extracted Vitals
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      {Object.entries(ent.vitals).map(([k, v]) => (
+                        <Chip 
+                          key={k}
+                          label={`${k.replace(/_/g,' ').toUpperCase()}: ${v}`}
+                          variant="outlined"
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                )}
 
-            {/* Allergy Alerts */}
-            {rules?.allergy_alerts?.length > 0 && (
-              <div style={{ marginTop: 20 }}>
-                <div className="entity-section-title" style={{ color: '#fca5a5' }}>⛔ Allergy Alerts from Rule Engine</div>
-                {rules.allergy_alerts.map((a, i) => (
-                  <div key={i} className="flag-card critical">
-                    <span className="flag-severity critical">CRITICAL ALLERGY</span>
-                    <div className="flag-title">{a.message}</div>
-                    {a.alternatives?.length > 0 && (
-                      <div className="flag-action">Suggested alternatives: {a.alternatives.join(', ')}</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+                {/* Rule Interaction Alerts */}
+                {rules?.allergy_alerts?.length > 0 && (
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'error.main', display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                      <ShieldAlert size={16} /> Severe Prescription Contraindications
+                    </Typography>
+                    {rules.allergy_alerts.map((a, i) => (
+                      <Alert severity="error" sx={{ mb: 1.5, '&:last-child': { mb: 0 } }} key={i}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>{a.message}</Typography>
+                        {a.alternatives?.length > 0 && (
+                          <Typography variant="body2" sx={{ fontSize: '0.8rem', mt: 0.5, fontWeight: 600 }}>
+                            Clinical Alternatives: {a.alternatives.join(', ')}
+                          </Typography>
+                        )}
+                      </Alert>
+                    ))}
+                  </Box>
+                )}
 
-            {/* Disease Conflicts */}
-            {rules?.conflicts?.length > 0 && (
-              <div style={{ marginTop: 20 }}>
-                <div className="entity-section-title" style={{ color: 'var(--amber)' }}>⚡ Disease Conflicts Detected</div>
-                {rules.conflicts.map((c, i) => (
-                  <div key={i} className={`flag-card ${c.severity}`}>
-                    <span className={`flag-severity ${c.severity}`}>{c.type.replace('_',' ')}</span>
-                    <div className="flag-title">{c.disease1} + {c.disease2}</div>
-                    <div className="flag-message">{c.message}</div>
-                  </div>
-                ))}
-              </div>
-            )}
+                {/* Contraindications */}
+                {rules?.conflicts?.length > 0 && (
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'warning.main', display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                      <AlertTriangle size={16} /> Disease-to-Drug Conflicts
+                    </Typography>
+                    {rules.conflicts.map((c, i) => (
+                      <Alert severity="warning" sx={{ mb: 1.5, '&:last-child': { mb: 0 } }} key={i}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '0.75rem' }}>{c.type}</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 600, mt: 0.5 }}>{c.disease1} & {c.disease2} Conflict: {c.message}</Typography>
+                      </Alert>
+                    ))}
+                  </Box>
+                )}
 
-            {/* Age Adjustments */}
-            {rules?.age_adjustments?.length > 0 && (
-              <div style={{ marginTop: 20 }}>
-                <div className="entity-section-title">👴 Age-Adjusted Rules ({rules.age_group})</div>
-                {rules.age_adjustments.map((a, i) => (
-                  <div key={i} className="do-item" style={{ marginBottom: 6 }}>
-                    <span className="icon">→</span> {a}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                {/* Demographics protocol adjustments */}
+                {rules?.age_adjustments?.length > 0 && (
+                  <Box>
+                    <Paper sx={{ p: 2.5, bgcolor: 'background.default', border: '1px solid #eee8e1', borderRadius: 3 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'primary.dark', display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                        <Brain size={16} /> Age Group Protocol Adjustments ({rules.age_group})
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {rules.age_adjustments.map((a, i) => (
+                          <Typography key={i} variant="body2" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                            <span style={{ color: 'var(--green)', fontWeight: 'bold' }}>✦</span> {a}
+                          </Typography>
+                        ))}
+                      </Box>
+                    </Paper>
+                  </Box>
+                )}
+              </Box>
+            </CardContent>
+          </Card>
         )}
 
-        {/* Action if not processed */}
+        {/* Process placeholder card */}
         {!isProcessed && (
-          <div className="card" style={{ marginTop: 20, textAlign: 'center', padding: 40 }}>
-            <div style={{ fontSize: 2.5 + 'rem', marginBottom: 16 }}>🔬</div>
-            <div style={{ fontWeight: 600, marginBottom: 8 }}>Ready to Process</div>
-            <div style={{ color: 'var(--text-muted)', marginBottom: 24, fontSize: '0.88rem' }}>
-              Click "Run NLP & Rule Engine" to extract entities from the discharge document and apply medical rules.
-            </div>
-            <button className="btn btn-primary btn-lg" onClick={handleProcess} disabled={processing}>
-              {processing ? <><span className="spinner" /> Extracting Entities…</> : '🔬 Run NLP & Rule Engine'}
-            </button>
-          </div>
+          <Card sx={{ mt: 3, p: 4, textAlign: 'center' }}>
+            <Box sx={{ color: 'primary.main', mb: 2, display: 'flex', justifyContent: 'center' }}><Activity size={48} strokeWidth={1.5} /></Box>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.dark', mb: 1 }}>Case Ready for Processing</Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3.5, maxWidth: 450, mx: 'auto' }}>
+              Run the clinical rules engine to identify contraindications, dosage alerts, and compile clinical safety flags.
+            </Typography>
+            <Button variant="contained" size="large" onClick={handleProcess} disabled={processing}>
+              {processing ? <CircularProgress size={24} color="inherit" /> : 'Run Extraction Engine'}
+            </Button>
+          </Card>
         )}
-      </div>
-    </>
+      </Box>
+    </Box>
   )
 }

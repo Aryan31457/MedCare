@@ -1,10 +1,41 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client.js'
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  Tabs,
+  Tab,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  InputAdornment,
+  IconButton,
+  Alert,
+  Paper,
+  Fade,
+  CircularProgress,
+  OutlinedInput
+} from '@mui/material'
+import {
+  HeartPulse,
+  Lock,
+  User,
+  Mail,
+  Eye,
+  EyeOff,
+  ChevronRight,
+  ClipboardList
+} from 'lucide-react'
 
 export default function Login({ onLoginSuccess }) {
   const navigate = useNavigate()
-  const [isRegister, setIsRegister] = useState(false)
+  const [tabValue, setTabValue] = useState(0) // 0: Login, 1: Register
   
   // Login fields
   const [usernameOrEmail, setUsernameOrEmail] = useState('')
@@ -26,6 +57,12 @@ export default function Login({ onLoginSuccess }) {
   const [success, setSuccess] = useState(null)
   const [showLoginPassword, setShowLoginPassword] = useState(false)
   const [showRegPassword, setShowRegPassword] = useState(false)
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue)
+    setError(null)
+    setSuccess(null)
+  }
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault()
@@ -77,7 +114,7 @@ export default function Login({ onLoginSuccess }) {
       }
 
       const response = await api.register(payload)
-      setSuccess('Account created successfully! Logging you in...')
+      setSuccess('Account created successfully! Auto-signing you in...')
       
       // Auto login
       setTimeout(() => {
@@ -101,236 +138,279 @@ export default function Login({ onLoginSuccess }) {
   }
 
   return (
-    <div className="login-page-container" style={{
+    <Box sx={{
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       minHeight: '100vh',
-      background: 'var(--bg-base)',
-      fontFamily: "'Plus Jakarta Sans', sans-serif",
-      padding: 24
+      background: 'linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%)',
+      position: 'relative',
+      overflow: 'hidden',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        width: '300px',
+        height: '300px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(14,165,233,0.12) 0%, rgba(0,0,0,0) 70%)',
+        top: '10%',
+        left: '15%',
+      },
+      '&::after': {
+        content: '""',
+        position: 'absolute',
+        width: '400px',
+        height: '400px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(79,70,229,0.1) 0%, rgba(0,0,0,0) 70%)',
+        bottom: '10%',
+        right: '15%',
+      },
+      p: 3
     }}>
-      <div className="card" style={{ maxWidth: 440, width: '100%', padding: 40, borderRadius: 20, boxShadow: '0 20px 40px rgba(0,0,0,0.04)' }}>
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>🌱</div>
-          <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '1.65rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-            {isRegister ? 'Create Account' : 'Welcome to MedCare'}
-          </h2>
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginTop: 4 }}>
-            {isRegister ? 'Register as a doctor or patient' : 'Sign in to access your portal'}
-          </p>
-        </div>
+      <Card sx={{ 
+        maxWidth: 460, 
+        width: '100%', 
+        borderRadius: 5, 
+        border: '1px solid rgba(255, 255, 255, 0.7)',
+        background: 'rgba(255, 255, 255, 0.85)',
+        backdropFilter: 'blur(20px)',
+        boxShadow: '0 20px 40px -15px rgba(15, 23, 42, 0.08)',
+        overflow: 'visible'
+      }}>
+        <CardContent sx={{ p: 4 }}>
+          {/* Header branding */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+            <Box sx={{ display: 'inline-flex', p: 1.5, bgcolor: 'primary.light' + '12', borderRadius: 4, color: 'primary.main', mb: 1.5 }}>
+              <HeartPulse size={36} strokeWidth={2.5} />
+            </Box>
+            <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.dark', letterSpacing: '-0.02em' }}>
+              MedCare Portal
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+              Automated Clinical Discharge Recovery System
+            </Typography>
+          </Box>
 
-        {error && (
-          <div className="alert danger" style={{ marginBottom: 24, padding: '12px 16px', borderRadius: 8, fontSize: '0.85rem' }}>
-            <span>⚠️ </span> {error}
-          </div>
-        )}
+          {/* Form Tabs Switcher */}
+          <Tabs 
+            value={tabValue} 
+            onChange={handleTabChange} 
+            variant="fullWidth" 
+            sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}
+          >
+            <Tab label="Sign In" sx={{ fontWeight: 700 }} />
+            <Tab label="Create Account" sx={{ fontWeight: 700 }} />
+          </Tabs>
 
-        {success && (
-          <div className="alert success" style={{ marginBottom: 24, padding: '12px 16px', borderRadius: 8, fontSize: '0.85rem', background: '#e8f5e9', color: '#2e7d32', border: '1px solid #c8e6c9' }}>
-            <span>✓ </span> {success}
-          </div>
-        )}
+          {/* Alerts */}
+          {error && (
+            <Fade in={!!error}>
+              <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
+            </Fade>
+          )}
+          {success && (
+            <Fade in={!!success}>
+              <Alert severity="success" sx={{ mb: 3 }}>{success}</Alert>
+            </Fade>
+          )}
 
-        {!isRegister ? (
-          // Sign In Form
-          <form onSubmit={handleLoginSubmit}>
-            <div className="form-group" style={{ marginBottom: 18 }}>
-              <label className="form-label">Username or Email</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="doctor or diabetes"
-                value={usernameOrEmail}
-                onChange={e => setUsernameOrEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="form-group" style={{ marginBottom: 24 }}>
-              <label className="form-label">Password</label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type={showLoginPassword ? 'text' : 'password'}
-                  className="form-input"
-                  style={{ paddingRight: 40 }}
-                  placeholder="••••••••"
-                  value={loginPassword}
-                  onChange={e => setLoginPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowLoginPassword(!showLoginPassword)}
-                  style={{
-                    position: 'absolute',
-                    right: 12,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: '1.1rem',
-                    padding: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    color: 'var(--text-muted)'
-                  }}
-                >
-                  {showLoginPassword ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" style={{ width: 20, height: 20 }}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" style={{ width: 20, height: 20 }}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} disabled={loading}>
-              {loading ? <><span className="spinner" /> Signing in...</> : 'Sign In'}
-            </button>
-            
-            <div style={{ marginTop: 20, textAlign: 'center', fontSize: '0.85rem' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>New to MedCare? </span>
-              <button type="button" onClick={() => { setIsRegister(true); setError(null); setSuccess(null); }} style={{ background: 'none', border: 'none', color: 'var(--green)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
-                Create Account
-              </button>
-            </div>
-          </form>
-        ) : (
-          // Register Form
-          <form onSubmit={handleRegisterSubmit}>
-            <div className="form-group" style={{ marginBottom: 14 }}>
-              <label className="form-label">Username</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="e.g. johndoe"
-                value={regUsername}
-                onChange={e => setRegUsername(e.target.value)}
-                required
-              />
-            </div>
-            <div className="form-group" style={{ marginBottom: 14 }}>
-              <label className="form-label">Email Address</label>
-              <input
-                type="email"
-                className="form-input"
-                placeholder="johndoe@example.com"
-                value={regEmail}
-                onChange={e => setRegEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="form-group" style={{ marginBottom: 14 }}>
-              <label className="form-label">Password</label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type={showRegPassword ? 'text' : 'password'}
-                  className="form-input"
-                  style={{ paddingRight: 40 }}
-                  placeholder="••••••••"
-                  value={regPassword}
-                  onChange={e => setRegPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowRegPassword(!showRegPassword)}
-                  style={{
-                    position: 'absolute',
-                    right: 12,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: '1.1rem',
-                    padding: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    color: 'var(--text-muted)'
-                  }}
-                >
-                  {showRegPassword ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" style={{ width: 20, height: 20 }}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" style={{ width: 20, height: 20 }}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
-            <div className="form-group" style={{ marginBottom: regRole === 'patient' ? 14 : 24 }}>
-              <label className="form-label">I am a...</label>
-              <select className="form-select" value={regRole} onChange={e => setRegRole(e.target.value)}>
-                <option value="doctor">🏥 Doctor / Clinician</option>
-                <option value="patient">🌱 Recovering Patient</option>
-              </select>
-            </div>
-
-            {regRole === 'patient' && (
-              <div style={{ padding: 14, background: '#f0f6f3', borderRadius: 10, border: '1px solid var(--border)', marginBottom: 24 }}>
-                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--green)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Patient Demographics</div>
-                <div className="form-group" style={{ marginBottom: 12 }}>
-                  <label className="form-label" style={{ fontSize: '0.72rem' }}>Full Name *</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g. John Doe"
-                    value={patName}
-                    onChange={e => setPatName(e.target.value)}
-                    required
+          {tabValue === 0 ? (
+            // Sign In View
+            <form onSubmit={handleLoginSubmit}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                <FormControl fullWidth required variant="outlined">
+                  <InputLabel>Username or Email</InputLabel>
+                  <OutlinedInput
+                    label="Username or Email"
+                    placeholder="e.g. doctor or ramesh"
+                    value={usernameOrEmail}
+                    onChange={e => setUsernameOrEmail(e.target.value)}
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <User size={18} style={{ color: '#9ca3af' }} />
+                      </InputAdornment>
+                    }
                   />
-                </div>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label className="form-label" style={{ fontSize: '0.72rem' }}>Age *</label>
-                    <input
-                      type="number"
-                      className="form-input"
-                      placeholder="35"
-                      min={0}
-                      value={patAge}
-                      onChange={e => setPatAge(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label className="form-label" style={{ fontSize: '0.72rem' }}>Sex *</label>
-                    <select className="form-select" value={patSex} onChange={e => setPatSex(e.target.value)}>
-                      <option>Male</option>
-                      <option>Female</option>
-                      <option>Other</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
+                </FormControl>
 
-            <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} disabled={loading}>
-              {loading ? <><span className="spinner" /> Creating Account...</> : 'Create Account'}
-            </button>
-            
-            <div style={{ marginTop: 20, textAlign: 'center', fontSize: '0.85rem' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Already have an account? </span>
-              <button type="button" onClick={() => { setIsRegister(false); setError(null); setSuccess(null); }} style={{ background: 'none', border: 'none', color: 'var(--green)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
-                Sign In
-              </button>
-            </div>
-          </form>
-        )}
+                <FormControl fullWidth required variant="outlined">
+                  <InputLabel>Password</InputLabel>
+                  <OutlinedInput
+                    type={showLoginPassword ? 'text' : 'password'}
+                    label="Password"
+                    placeholder="••••••••"
+                    value={loginPassword}
+                    onChange={e => setLoginPassword(e.target.value)}
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <Lock size={18} style={{ color: '#9ca3af' }} />
+                      </InputAdornment>
+                    }
+                    endAdornment={
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => setShowLoginPassword(!showLoginPassword)} edge="end">
+                          {showLoginPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </IconButton>
+                      </InputAdornment>
+                    }
+                  />
+                </FormControl>
 
-      </div>
-    </div>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  disabled={loading}
+                  sx={{ height: 48, fontSize: '0.95rem', mt: 1 }}
+                >
+                  {loading ? <CircularProgress size={24} color="inherit" /> : <>Sign In <ChevronRight size={16} style={{ marginLeft: 6 }} /></>}
+                </Button>
+              </Box>
+            </form>
+          ) : (
+            // Register View
+            <form onSubmit={handleRegisterSubmit}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.2 }}>
+                <FormControl fullWidth required variant="outlined">
+                  <InputLabel>Username</InputLabel>
+                  <OutlinedInput
+                    label="Username"
+                    placeholder="e.g. johndoe"
+                    value={regUsername}
+                    onChange={e => setRegUsername(e.target.value)}
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <User size={18} style={{ color: '#9ca3af' }} />
+                      </InputAdornment>
+                    }
+                  />
+                </FormControl>
+
+                <FormControl fullWidth required variant="outlined">
+                  <InputLabel>Email Address</InputLabel>
+                  <OutlinedInput
+                    type="email"
+                    label="Email Address"
+                    placeholder="johndoe@example.com"
+                    value={regEmail}
+                    onChange={e => setRegEmail(e.target.value)}
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <Mail size={18} style={{ color: '#9ca3af' }} />
+                      </InputAdornment>
+                    }
+                  />
+                </FormControl>
+
+                <FormControl fullWidth required variant="outlined">
+                  <InputLabel>Password</InputLabel>
+                  <OutlinedInput
+                    type={showRegPassword ? 'text' : 'password'}
+                    label="Password"
+                    placeholder="••••••••"
+                    value={regPassword}
+                    onChange={e => setRegPassword(e.target.value)}
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <Lock size={18} style={{ color: '#9ca3af' }} />
+                      </InputAdornment>
+                    }
+                    endAdornment={
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => setShowRegPassword(!showRegPassword)} edge="end">
+                          {showRegPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </IconButton>
+                      </InputAdornment>
+                    }
+                  />
+                </FormControl>
+
+                <FormControl fullWidth>
+                  <InputLabel>Account Role</InputLabel>
+                  <Select
+                    value={regRole}
+                    label="Account Role"
+                    onChange={e => setRegRole(e.target.value)}
+                  >
+                    <MenuItem value="doctor">Doctor / Clinician</MenuItem>
+                    <MenuItem value="patient">Recovering Patient</MenuItem>
+                  </Select>
+                </FormControl>
+
+                {regRole === 'patient' && (
+                  <Paper sx={{ p: 2.5, bgcolor: '#fbfaf8', border: '1px solid #eee8e1', borderRadius: 3 }}>
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 1, 
+                        fontWeight: 700, 
+                        color: 'primary.main', 
+                        textTransform: 'uppercase', 
+                        letterSpacing: '0.05em', 
+                        mb: 2 
+                      }}
+                    >
+                      <ClipboardList size={14} /> Demographics Setup
+                    </Typography>
+                    
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label="Patient Full Name"
+                        placeholder="John Doe"
+                        value={patName}
+                        onChange={e => setPatName(e.target.value)}
+                        required
+                        sx={{ bgcolor: 'background.paper' }}
+                      />
+
+                      <Box sx={{ display: 'flex', gap: 2 }}>
+                        <TextField
+                          size="small"
+                          label="Age"
+                          type="number"
+                          placeholder="35"
+                          value={patAge}
+                          onChange={e => setPatAge(e.target.value)}
+                          required
+                          sx={{ flex: 1, bgcolor: 'background.paper' }}
+                        />
+
+                        <FormControl size="small" sx={{ flex: 1, bgcolor: 'background.paper' }}>
+                          <InputLabel>Gender</InputLabel>
+                          <Select
+                            value={patSex}
+                            label="Gender"
+                            onChange={e => setPatSex(e.target.value)}
+                          >
+                            <MenuItem value="Male">Male</MenuItem>
+                            <MenuItem value="Female">Female</MenuItem>
+                            <MenuItem value="Other">Other</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Box>
+                    </Box>
+                  </Paper>
+                )}
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  disabled={loading}
+                  sx={{ height: 48, fontSize: '0.95rem', mt: 1 }}
+                >
+                  {loading ? <CircularProgress size={24} color="inherit" /> : <>Create Account <ChevronRight size={16} style={{ marginLeft: 6 }} /></>}
+                </Button>
+              </Box>
+            </form>
+          )}
+        </CardContent>
+      </Card>
+    </Box>
   )
 }
