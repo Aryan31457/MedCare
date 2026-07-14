@@ -470,27 +470,208 @@ DRUG_CLASS_MAP = {
 # ─────────────────────────────────────────────
 SAMPLE_PATIENTS = [
     {
-        "id": "P001", "name": "Ramesh Kumar", "age": 65, "sex": "Male",
-        "weight_kg": 72.0, "blood_group": "B+",
+        "id": "P001", "name": "David Miller", "age": 54, "sex": "Male",
+        "weight_kg": 88.0, "blood_group": "A+",
+        "allergies": ["sulfonamide"],
+        "contact": "Karen Miller (Wife) — 555-0101",
+        "address": "14 Elmwood Drive, Chicago, IL"
+    },
+    {
+        "id": "P002", "name": "Sarah Jenkins", "age": 61, "sex": "Female",
+        "weight_kg": 67.0, "blood_group": "O+",
         "allergies": ["penicillin"],
-        "contact": "Suresh Kumar (Son) — 9876543210",
-        "address": "42, MG Road, Bengaluru, Karnataka"
+        "contact": "Tom Jenkins (Husband) — 555-0202",
+        "address": "88 Maple Avenue, Houston, TX"
     },
     {
-        "id": "P002", "name": "Priya Sharma", "age": 32, "sex": "Female",
-        "weight_kg": 58.0, "blood_group": "O+",
+        "id": "P003", "name": "James Cooper", "age": 68, "sex": "Male",
+        "weight_kg": 92.0, "blood_group": "B+",
+        "allergies": ["penicillin", "aspirin"],
+        "contact": "Linda Cooper (Daughter) — 555-0303",
+        "address": "5 Birchwood Lane, Phoenix, AZ"
+    },
+    {
+        "id": "P004", "name": "Emily Watson", "age": 29, "sex": "Female",
+        "weight_kg": 55.0, "blood_group": "AB+",
         "allergies": [],
-        "contact": "Rahul Sharma (Husband) — 9123456789",
-        "address": "15, Lajpat Nagar, New Delhi"
+        "contact": "Mark Watson (Brother) — 555-0404",
+        "address": "22 Sunset Blvd, Los Angeles, CA"
     },
     {
-        "id": "P003", "name": "Arjun Singh", "age": 72, "sex": "Male",
-        "weight_kg": 68.0, "blood_group": "A+",
+        "id": "P005", "name": "Robert Chen", "age": 73, "sex": "Male",
+        "weight_kg": 76.0, "blood_group": "O-",
         "allergies": ["penicillin", "sulfonamide"],
-        "contact": "Kaur Singh (Wife) — 9988776655",
-        "address": "7, Sector 22, Chandigarh, Punjab"
-    }
+        "contact": "Lisa Chen (Daughter) — 555-0505",
+        "address": "9 Lakeview Court, Seattle, WA"
+    },
 ]
+
+SAMPLE_DISCHARGE_TEXTS = {
+    "P001": """DISCHARGE SUMMARY
+Patient: David Miller | Age: 54 years | Sex: Male | IP No: MED-2026-1001
+Admission: 10/06/2026 | Discharge: 14/06/2026 | Ward: Endocrinology
+
+PRIMARY DIAGNOSIS:
+1. Type 2 Diabetes Mellitus — poorly controlled (HbA1c 10.2%)
+2. Diabetic Peripheral Neuropathy (bilateral feet)
+3. Hypertension (Known case — 6 years)
+
+INVESTIGATIONS:
+- HbA1c: 10.2% (severely uncontrolled)
+- Fasting Blood Glucose: 268 mg/dL | Post-meal: 342 mg/dL
+- Serum Creatinine: 1.0 mg/dL | eGFR: 74 mL/min
+- Blood Pressure: 148/92 mmHg
+- Hemoglobin: 13.1 g/dL
+- Lipid Profile: LDL 142 mg/dL, HDL 38 mg/dL
+- Urine Microalbumin: 85 mg/g (microalbuminuria)
+
+DISCHARGE MEDICATIONS:
+1. Tab Metformin 1000mg — Twice daily WITH meals
+2. Tab Glipizide 5mg — Once daily before breakfast
+3. Tab Amlodipine 5mg — Once daily
+4. Tab Atorvastatin 40mg — Once daily at NIGHT
+5. Tab Lisinopril 10mg — Once daily MORNING (nephroprotection)
+6. Vitamin B12 500mcg — Once daily (neuropathy support)
+
+KNOWN ALLERGIES: Sulfonamide antibiotics (rash)
+DIET: Strict diabetic diet. Low GI foods. No sugar, sweets, or refined carbs. Calorie-controlled.
+FOLLOW UP: Endocrinology in 2 weeks. Ophthalmology screening in 1 month. Podiatry referral placed.
+DISCHARGE GLUCOSE: 162 mg/dL (improving). BP 136/84 mmHg.
+""",
+    "P002": """DISCHARGE SUMMARY
+Patient: Sarah Jenkins | Age: 61 years | Sex: Female | IP No: MED-2026-1002
+Admission: 08/06/2026 | Discharge: 15/06/2026 | Ward: Cardiology (CCU -> General)
+
+PRIMARY DIAGNOSIS:
+1. Acute NSTEMI (Posterior wall) — Post emergency PCI + DES to RCA
+2. Congestive Heart Failure (EF: 40%, NYHA Class II)
+3. Hypertension (Known case — 12 years)
+4. Hypercholesterolaemia
+
+INVESTIGATIONS:
+- Troponin I: 18.4 ng/mL (elevated)
+- BNP: 480 pg/mL (cardiac stress marker)
+- HbA1c: 5.9% | Fasting Glucose: 104 mg/dL
+- Serum Creatinine: 1.1 mg/dL | eGFR: 58 mL/min
+- Blood Pressure: 158/96 mmHg
+- Hemoglobin: 11.6 g/dL
+- LDL: 178 mg/dL | HDL: 42 mg/dL
+
+DISCHARGE MEDICATIONS:
+1. Tab Aspirin 81mg — Once daily AFTER breakfast (do not stop without cardiologist approval)
+2. Tab Clopidogrel 75mg — Once daily AFTER breakfast (dual antiplatelet — 12-month course)
+3. Tab Atorvastatin 80mg — Once daily at NIGHT
+4. Tab Metoprolol 25mg — Twice daily with meals
+5. Tab Lisinopril 5mg — Once daily MORNING
+6. Tab Furosemide 20mg — Once daily MORNING (fluid management)
+7. Tab Amlodipine 5mg — Once daily
+
+KNOWN ALLERGIES: Penicillin (urticaria)
+DIET: Cardiac + low sodium diet (<2g salt/day). Low saturated fat. No fried foods. Fluid: 1.8L/day.
+FOLLOW UP: Cardiology in 1 week. Repeat Echo in 6 weeks. Lipid check in 6 weeks.
+DISCHARGE BP: 128/80 mmHg | HR: 68 bpm | Weight: 67 kg. Clinically stable.
+""",
+    "P003": """DISCHARGE SUMMARY
+Patient: James Cooper | Age: 68 years | Sex: Male | IP No: MED-2026-1003
+Admission: 06/06/2026 | Discharge: 13/06/2026 | Ward: Nephrology
+
+PRIMARY DIAGNOSIS:
+1. Hypertensive Urgency — BP 196/118 mmHg on admission
+2. Chronic Kidney Disease Stage 3 (eGFR 34 mL/min) — worsening
+3. Hypertension (Known case — 18 years, poorly controlled)
+4. Anaemia of Chronic Kidney Disease (Hb 9.2 g/dL)
+
+INVESTIGATIONS:
+- Blood Pressure (admission): 196/118 mmHg
+- Serum Creatinine: 2.4 mg/dL | eGFR: 34 mL/min (CKD Stage 3b)
+- Serum Potassium: 5.6 mEq/L (hyperkalemia)
+- Hemoglobin: 9.2 g/dL (CKD anaemia)
+- Urine Protein: 2+ (proteinuria)
+- Fundoscopy: Grade III hypertensive retinopathy
+
+DISCHARGE MEDICATIONS:
+1. Tab Losartan 100mg — Once daily (renoprotective — do NOT stop)
+2. Tab Amlodipine 10mg — Once daily
+3. Tab Furosemide 40mg — Once daily MORNING
+4. Tab Carvedilol 12.5mg — Twice daily WITH food
+5. Tab Sodium Bicarbonate 650mg — Twice daily (metabolic acidosis)
+6. Inj Erythropoietin 4000 IU — SC 3x/week (Mon/Wed/Fri) for CKD anaemia
+
+KNOWN ALLERGIES: Penicillin (anaphylaxis), Aspirin (bronchospasm)
+DIET: Strict low-potassium diet (<2g/day). Low sodium (<1.5g/day). Protein: 0.6g/kg/day.
+FOLLOW UP: Nephrology in 1 week. BP monitoring DAILY. Repeat electrolytes in 2 weeks.
+DISCHARGE BP: 142/88 mmHg (improving).
+""",
+    "P004": """DISCHARGE SUMMARY
+Patient: Emily Watson | Age: 29 years | Sex: Female | IP No: MED-2026-1004
+Admission: 11/06/2026 | Discharge: 16/06/2026 | Ward: General Medicine / Respiratory
+
+PRIMARY DIAGNOSIS:
+1. Acute Severe Asthma Exacerbation — triggered by respiratory tract infection
+2. Community-Acquired Pneumonia (right lower lobe)
+3. Mild Iron-Deficiency Anaemia (Hb 10.4 g/dL)
+
+INVESTIGATIONS:
+- Peak Flow Rate (admission): 38% predicted (severe obstruction)
+- Peak Flow Rate (discharge): 72% predicted (improving)
+- Chest X-Ray: Right lower lobe consolidation
+- SpO2: 91% on room air (admission) -> 97% at discharge
+- WBC: 14.2 x10^9/L | Hemoglobin: 10.4 g/dL
+- Sputum Culture: Streptococcus pneumoniae (sensitive to azithromycin)
+- Serum IgE: 420 IU/mL (elevated — allergic asthma confirmed)
+
+DISCHARGE MEDICATIONS:
+1. Inhaler Salbutamol 100mcg — 2 puffs as needed (rescue inhaler — always carry)
+2. Inhaler Budesonide/Formoterol 200/6mcg — 1 puff twice daily (controller — use DAILY)
+3. Tab Azithromycin 500mg — Once daily for 3 more days (complete course)
+4. Tab Prednisolone 30mg — Once daily for 5 days then taper
+5. Tab Montelukast 10mg — Once daily at NIGHT
+6. Tab Ferrous Sulfate 200mg — Once daily after meals
+
+KNOWN ALLERGIES: None Known (NKDA)
+ASTHMA TRIGGERS: Avoid smoke, dust, pet dander, cold air, strong perfumes, mould.
+DIET: Balanced diet. Iron-rich foods (spinach, lentils, fortified cereals).
+FOLLOW UP: Pulmonology in 1 week. Spirometry in 6 weeks.
+DISCHARGE SpO2: 97% room air. Peak flow 72%. Clinically stable.
+""",
+    "P005": """DISCHARGE SUMMARY
+Patient: Robert Chen | Age: 73 years | Sex: Male | IP No: MED-2026-1005
+Admission: 03/06/2026 | Discharge: 16/06/2026 | Ward: Cardiology
+
+PRIMARY DIAGNOSIS:
+1. Acute Decompensated Heart Failure (NYHA Class IV -> Class III) | EF: 28%
+2. Atrial Fibrillation with Rapid Ventricular Response — rate controlled
+3. Hypertension (Known case — 20 years)
+4. Chronic Kidney Disease Stage 3 (eGFR 40 mL/min)
+5. Type 2 Diabetes Mellitus (on insulin)
+
+INVESTIGATIONS:
+- BNP: 1840 pg/mL (admission) -> 420 pg/mL (discharge)
+- Troponin I: 0.8 ng/mL (demand ischemia)
+- Serum Creatinine: 2.0 mg/dL | eGFR: 40 mL/min
+- Potassium: 5.1 mEq/L | Sodium: 130 mEq/L (hyponatremia)
+- Hemoglobin: 10.1 g/dL | HbA1c: 8.8%
+- 2D Echo: EF 28%, severe LV dysfunction, moderate MR
+- ECG: Atrial Fibrillation, rate ~88 bpm at discharge
+
+DISCHARGE MEDICATIONS:
+1. Tab Furosemide 80mg — Once daily MORNING (daily weight monitoring mandatory)
+2. Tab Carvedilol 6.25mg — Twice daily WITH food (do NOT stop suddenly)
+3. Tab Spironolactone 25mg — Once daily (monitor potassium weekly)
+4. Tab Digoxin 0.125mg — Once daily (rate control for AF)
+5. Tab Warfarin 5mg — Once daily at 6PM (INR target 2.0-3.0 — check INR weekly)
+6. Tab Losartan 25mg — Once daily (low dose due to CKD)
+7. Tab Atorvastatin 40mg — Once daily at NIGHT
+8. Inj Insulin Glargine 20 units — SC at BEDTIME
+
+KNOWN ALLERGIES: Penicillin (anaphylaxis), Sulfonamide (rash)
+DIET: Strict fluid restriction (1.2L/day). Sodium <1.5g/day. Low potassium. Diabetic diet.
+FOLLOW UP: Cardiology in 3 days. Nephrology in 1 week. INR check in 3 days.
+EMERGENCY: Return IMMEDIATELY if weight gain >1.5kg overnight, severe breathlessness, or palpitations.
+DISCHARGE WEIGHT: 76kg (admitted at 83kg — 7kg fluid removed). BP 130/78 mmHg. HR 88 bpm (AF).
+"""
+}
+
 
 SAMPLE_DISCHARGE_TEXTS = {
     "P001": """DISCHARGE SUMMARY
@@ -539,30 +720,15 @@ INVESTIGATIONS:
 - Widal Test: O antigen 1:320, H antigen 1:320 (positive)
 - Hemoglobin: 10.8 g/dL (mild anemia)
 - WBC Count: 3.2 x 10^9/L (leukopenia — typical of typhoid)
-- Platelet Count: 125 x 10^9/L (mild thrombocytopenia)
-- Liver Function: ALT 68 U/L, AST 72 U/L (mild elevation — typhoid hepatitis)
-- Temperature on admission: 103.4°F (39.7°C)
+6. Tab Furosemide 20mg — Once daily MORNING (mild fluid management)
+7. Tab Amlodipine 5mg — Once daily
 
-DISCHARGE MEDICATIONS:
-1. Tab Cefixime 400mg — Twice daily for 7 MORE days (complete full 14-day course — MUST NOT STOP EARLY)
-2. Tab Paracetamol 500mg — ONLY if fever (temperature > 100°F); NOT to be taken regularly
-3. ORS Sachet — Dissolve in 1L boiled water, sip throughout the day as needed
-4. Tab Ferrous Sulfate + Folic Acid — Once daily after meals (for anemia)
-5. Multivitamin tablet — Once daily
-
-KNOWN ALLERGIES: None Known (NKDA)
-DIET: Typhoid diet — soft, easily digestible, bland food only. Avoid ALL spicy, oily, raw food.
-Drink only boiled or sealed bottled water.
-FOLLOW UP: Medicine OPD in 1 week. Repeat: LFT, CBC, and stool culture at follow-up.
-DISCHARGE CONDITION: Afebrile for 48 hours. Improving. Discharged on patient/family request.
+KNOWN ALLERGIES: Penicillin (urticaria)
+DIET: Cardiac + low sodium diet (<2g salt/day). Low saturated fat. No fried foods. Fluid: 1.8L/day.
+FOLLOW UP: Cardiology in 1 week. Repeat Echo in 6 weeks. Lipid check in 6 weeks.
+DISCHARGE BP: 128/80 mmHg | HR: 68 bpm | Weight: 67 kg. Clinically stable.
 """,
     "P003": """DISCHARGE SUMMARY
-Patient: Arjun Singh | Age: 72 years | Sex: Male | IP No: MED-2026-0489
-Admission: 05/06/2026 | Discharge: 16/06/2026 | Ward: Cardiology
-
-PRIMARY DIAGNOSIS:
-1. Decompensated Congestive Heart Failure (NYHA Class III → Class II on discharge) | EF: 35%
-2. Chronic Kidney Disease Stage 3 (eGFR 38 mL/min/1.73m²)
 3. Hypertension (Known case — 15 years, on multiple antihypertensives)
 4. Anemia of Chronic Kidney Disease (Hb 9.8 g/dL)
 
