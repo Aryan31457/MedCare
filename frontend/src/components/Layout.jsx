@@ -165,7 +165,7 @@ export default function Layout({ children, onLogout }) {
             <ListItem disablePadding sx={{ mb: 0.5 }}>
               <ListItemButton
                 component="a"
-                href="http://localhost:8000/docs"
+                href="https://medcare-1-wc3h.onrender.com/docs"
                 target="_blank"
                 rel="noopener noreferrer"
                 sx={{ borderRadius: 2.5, py: 1.2, px: 2 }}
@@ -180,7 +180,7 @@ export default function Layout({ children, onLogout }) {
             <ListItem disablePadding sx={{ mb: 0.5 }}>
               <ListItemButton
                 component="a"
-                href="http://localhost:8000/api/kb/diseases"
+                href="https://medcare-1-wc3h.onrender.com/api/kb/diseases"
                 target="_blank"
                 rel="noopener noreferrer"
                 sx={{ borderRadius: 2.5, py: 1.2, px: 2 }}

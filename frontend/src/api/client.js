@@ -1,5 +1,5 @@
-const DOCTOR_BASE = 'http://localhost:8000/api'
-const PATIENT_BASE = 'http://localhost:8000/api'
+const DOCTOR_BASE = import.meta.env.VITE_API_URL || 'https://medcare-1-wc3h.onrender.com/api'
+const PATIENT_BASE = import.meta.env.VITE_API_URL || 'https://medcare-1-wc3h.onrender.com/api'
 
 async function req(base, path, opts = {}) {
   const res = await fetch(`${base}${path}`, {
