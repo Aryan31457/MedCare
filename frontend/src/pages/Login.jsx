@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { loginSuccess } from '../redux/authSlice.js'
 import { api } from '../api/client.js'
 import {
   Box,
@@ -33,8 +35,9 @@ import {
   ClipboardList
 } from 'lucide-react'
 
-export default function Login({ onLoginSuccess }) {
+export default function Login() {
   const navigate = useNavigate()
+  const dispatch = useDispatch()
   const [tabValue, setTabValue] = useState(0) // 0: Login, 1: Register
   
   // Login fields
@@ -73,13 +76,7 @@ export default function Login({ onLoginSuccess }) {
     try {
       const response = await api.login(usernameOrEmail, loginPassword)
       
-      localStorage.setItem('role', response.role)
-      localStorage.setItem('auth', 'true')
-      if (response.patient_id) {
-        localStorage.setItem('patientId', response.patient_id)
-      }
-
-      onLoginSuccess(response.role, response.patient_id)
+      dispatch(loginSuccess({ role: response.role, patientId: response.patient_id }))
       
       if (response.role === 'doctor') {
         navigate('/')
@@ -118,12 +115,7 @@ export default function Login({ onLoginSuccess }) {
       
       // Auto login
       setTimeout(() => {
-        localStorage.setItem('role', response.role)
-        localStorage.setItem('auth', 'true')
-        if (response.patient_id) {
-          localStorage.setItem('patientId', response.patient_id)
-        }
-        onLoginSuccess(response.role, response.patient_id)
+        dispatch(loginSuccess({ role: response.role, patientId: response.patient_id }))
         if (response.role === 'doctor') {
           navigate('/')
         } else {

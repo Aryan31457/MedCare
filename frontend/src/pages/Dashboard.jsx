@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchCases, fetchStats } from '../redux/dataSlice'
 import { api } from '../api/client.js'
 import {
   Box,
@@ -95,23 +97,23 @@ function Skeleton() {
 }
 
 export default function Dashboard() {
-  const [cases, setCases]   = useState([])
-  const [stats, setStats]   = useState(null)
-  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const { cases, stats, casesStatus, statsStatus } = useSelector(state => state.data)
 
   const loadData = () => {
-    setLoading(true)
-    Promise.all([api.getCases(), api.getStats()])
-      .then(([c, s]) => { setCases(c); setStats(s) })
-      .finally(() => setLoading(false))
+    dispatch(fetchCases())
+    dispatch(fetchStats())
   }
 
   useEffect(() => {
-    loadData()
-  }, [])
+    if (casesStatus === 'idle') dispatch(fetchCases())
+    if (statsStatus === 'idle') dispatch(fetchStats())
+  }, [casesStatus, statsStatus, dispatch])
 
-  if (loading) return <Skeleton />
+  const loading = casesStatus === 'loading' || statsStatus === 'loading' || casesStatus === 'idle' || statsStatus === 'idle'
+
+  if (loading && (!cases || cases.length === 0)) return <Skeleton />
 
   return (
     <Box>

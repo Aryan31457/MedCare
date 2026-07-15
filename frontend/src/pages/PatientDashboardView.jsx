@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { logout } from '../redux/authSlice.js'
 import { api } from '../api/client.js'
 import {
   getLevel,
@@ -91,10 +93,11 @@ const CATEGORY_ICONS = {
 }
 
 // ── Patient Selection Component (Home Route "/") ────────────────────────────
-export function PatientSelector({ onLogout }) {
+export function PatientSelector() {
   const [patients, setPatients] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const dispatch = useDispatch()
 
   useEffect(() => {
     api.getPatientsAll()
@@ -127,7 +130,7 @@ export function PatientSelector({ onLogout }) {
             <Button 
               size="small" 
               color="error" 
-              onClick={onLogout}
+              onClick={() => dispatch(logout())}
               startIcon={<LogOut size={14} />}
               sx={{ fontWeight: 700 }}
             >
@@ -193,9 +196,10 @@ export function PatientSelector({ onLogout }) {
 }
 
 // ── Patient Dashboard Component (Route "/patient/:patientId") ───────────────
-export function PatientDashboard({ onLogout }) {
+export function PatientDashboard() {
   const { patientId } = useParams()
   const navigate = useNavigate()
+  const dispatch = useDispatch()
   const [tabVal, setTabVal] = useState(0) // 0: checklist, 1: diet, 2: exercise, 3: meds, 4: redflags
   
   // Data loading states
@@ -445,7 +449,7 @@ export function PatientDashboard({ onLogout }) {
               Switch User
             </Button>
             <Typography variant="caption" sx={{ color: 'text.disabled' }}>|</Typography>
-            <Button size="small" variant="text" color="error" onClick={onLogout} sx={{ fontSize: '0.72rem', fontWeight: 700, p: 0, minWidth: 0, textDecoration: 'underline' }}>
+            <Button size="small" variant="text" color="error" onClick={() => dispatch(logout())} sx={{ fontSize: '0.72rem', fontWeight: 700, p: 0, minWidth: 0, textDecoration: 'underline' }}>
               Logout
             </Button>
           </Box>

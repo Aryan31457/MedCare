@@ -1,6 +1,6 @@
-import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import Layout from './components/Layout.jsx'
+import { useSelector } from 'react-redux'
+import Layout from './Layout.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import NewCase from './pages/NewCase.jsx'
 import CaseDetail from './pages/CaseDetail.jsx'
@@ -10,36 +10,19 @@ import Login from './pages/Login.jsx'
 import { PatientDashboard } from './pages/PatientDashboardView.jsx'
 
 export default function App() {
-  const [auth, setAuth] = useState(() => localStorage.getItem('auth') === 'true')
-  const [role, setRole] = useState(() => localStorage.getItem('role'))
-  const [patientId, setPatientId] = useState(() => localStorage.getItem('patientId'))
+  const { isAuthenticated, role, patientId } = useSelector((state) => state.auth);
 
-  const handleLoginSuccess = (userRole, patientIdVal = null) => {
-    setAuth(true)
-    setRole(userRole)
-    setPatientId(patientIdVal)
-  }
-
-  const handleLogout = () => {
-    localStorage.removeItem('auth')
-    localStorage.removeItem('role')
-    localStorage.removeItem('patientId')
-    setAuth(false)
-    setRole(null)
-    setPatientId(null)
-  }
-
-  if (!auth) {
+  if (!isAuthenticated) {
     return (
       <Routes>
-        <Route path="*" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+        <Route path="*" element={<Login />} />
       </Routes>
     )
   }
 
   if (role === 'doctor') {
     return (
-      <Layout onLogout={handleLogout}>
+      <Layout>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/cases/new" element={<NewCase />} />
@@ -56,7 +39,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to={`/patient/${patientId}`} replace />} />
-      <Route path="/patient/:patientId" element={<PatientDashboard onLogout={handleLogout} />} />
+      <Route path="/patient/:patientId" element={<PatientDashboard />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

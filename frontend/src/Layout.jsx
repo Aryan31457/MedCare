@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { api } from '../api/client.js'
+import { useDispatch, useSelector } from 'react-redux'
+import { logout } from './redux/authSlice.js'
+import { fetchStats } from './redux/dataSlice.js'
+import { api } from './api/client.js'
 import {
   Box,
   Drawer,
@@ -29,14 +32,17 @@ import {
 
 const drawerWidth = 260;
 
-export default function Layout({ children, onLogout }) {
-  const [stats, setStats] = useState(null)
+export default function Layout({ children }) {
   const location = useLocation()
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const { stats, statsStatus } = useSelector(state => state.data)
 
   useEffect(() => {
-    api.getStats().then(setStats).catch(() => {})
-  }, [location.pathname]) // refresh badge on nav
+    if (statsStatus === 'idle') {
+      dispatch(fetchStats())
+    }
+  }, [statsStatus, dispatch])
 
   const isActive = (path) => {
     if (path === '/') {
@@ -194,7 +200,7 @@ export default function Layout({ children, onLogout }) {
 
             <ListItem disablePadding sx={{ mt: 3 }}>
               <ListItemButton
-                onClick={onLogout}
+                onClick={() => dispatch(logout())}
                 sx={{ borderRadius: 2.5, py: 1.2, px: 2, color: 'secondary.main', '&:hover': { bgcolor: 'secondary.light' + '10' } }}
               >
                 <ListItemIcon sx={{ minWidth: 32, color: 'secondary.main' }}>

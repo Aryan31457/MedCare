@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchGeminiStatus } from '../redux/dataSlice'
 import { api } from '../api/client.js'
 import {
   Box,
@@ -136,17 +138,19 @@ export default function NewCase() {
   const [patientId, setPatientId] = useState(null)
   const [caseId, setCaseId]       = useState(null)
   const [aiMode, setAiMode]       = useState(MODE_NLP)
-  const [geminiReady, setGeminiReady] = useState(false)
   const [genResult, setGenResult] = useState(null)
+
+  const dispatch = useDispatch()
+  const { geminiEnabled: geminiReady, geminiStatus } = useSelector(state => state.data)
 
   const set = (field) => (e) => setPatient(p => ({ ...p, [field]: e.target.value }))
 
   // Check if Gemini is configured on mount
   useEffect(() => {
-    api.getGeminiStatus()
-      .then(r => setGeminiReady(r.gemini_configured))
-      .catch(() => setGeminiReady(false))
-  }, [])
+    if (geminiStatus === 'idle') {
+      dispatch(fetchGeminiStatus())
+    }
+  }, [geminiStatus, dispatch])
 
   const handlePatient = async (e) => {
     e.preventDefault(); setLoading(true); setError(null)

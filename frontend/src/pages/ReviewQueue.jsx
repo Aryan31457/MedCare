@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchReviewQueue } from '../redux/dataSlice'
 import { api } from '../api/client.js'
 import {
   Box,
@@ -23,17 +25,21 @@ import {
 } from 'lucide-react'
 
 export default function ReviewQueue() {
-  const [queue, setQueue]   = useState([])
-  const [loading, setLoad]  = useState(true)
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const { reviewQueue: queue, reviewQueueStatus } = useSelector(state => state.data)
 
   useEffect(() => {
-    api.getReviewQueue().then(setQueue).finally(() => setLoad(false))
-  }, [])
+    if (reviewQueueStatus === 'idle') {
+      dispatch(fetchReviewQueue())
+    }
+  }, [reviewQueueStatus, dispatch])
 
-  const refresh = () => { setLoad(true); api.getReviewQueue().then(setQueue).finally(() => setLoad(false)) }
+  const refresh = () => { dispatch(fetchReviewQueue()) }
 
-  if (loading) return <div className="page-content"><div className="skeleton" style={{ height: 400, borderRadius: 16, marginTop: 32 }} /></div>
+  const loading = reviewQueueStatus === 'loading' || reviewQueueStatus === 'idle'
+
+  if (loading && (!queue || queue.length === 0)) return <div className="page-content"><div className="skeleton" style={{ height: 400, borderRadius: 16, marginTop: 32 }} /></div>
 
   return (
     <Box>

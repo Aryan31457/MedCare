@@ -6,6 +6,8 @@ import CssBaseline from '@mui/material/CssBaseline'
 import App from './App.jsx'
 import './index.css'
 import './patient.css'
+import { Provider } from 'react-redux'
+import { store } from './redux/store.js'
 
 const theme = createTheme({
   palette: {
@@ -97,7 +99,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <BrowserRouter>
-        <App />
+        <Provider store={store}>
+          <App />
+        </Provider>
       </BrowserRouter>
     </ThemeProvider>
   </React.StrictMode>
