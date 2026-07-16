@@ -3,8 +3,12 @@ FastAPI Main — All API routes + startup data seeding.
 Runs on http://localhost:8000
 """
 import os
+from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv()  # Load GEMINI_API_KEY from backend/.env
+
+# Load GEMINI_API_KEY from backend/.env regardless of where main.py is run from
+env_path = Path(__file__).parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 from fastapi import FastAPI, Depends, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,7 +24,10 @@ from models import (
     Patient, Case, CarePlan, User, PatientGamification,
     PatientCreate, PatientOut, CaseCreate,
     CaseSummary, CaseDetail, CarePlanOut, ApproveRequest, StatsOut,
-    LoginRequest, UserOut, RegisterRequest, PatientListOut, GamificationState, GamificationSave
+    LoginRequest, UserOut, UserUpdate, RegisterRequest, PatientListOut, GamificationState, GamificationSave
+)
+from auth_service import (
+    get_password_hash, verify_password, create_access_token, get_current_user_token
 )
 from knowledge_base import SAMPLE_PATIENTS, SAMPLE_DISCHARGE_TEXTS, DISEASE_KG
 from nlp_service import extract_entities
@@ -639,9 +646,24 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
         (User.username == data.username_or_email) | (User.email == data.username_or_email)
     ).first()
     
-    if not user or user.password != data.password:
+    if not user:
         raise HTTPException(status_code=400, detail="Invalid username/email or password.")
         
+    is_valid_password = False
+    if user.password == data.password:
+        is_valid_password = True
+    else:
+        try:
+            if verify_password(data.password, user.password):
+                is_valid_password = True
+        except:
+            pass
+
+    if not is_valid_password:
+        raise HTTPException(status_code=400, detail="Invalid username/email or password.")
+        
+    access_token = create_access_token(data={"sub": user.id, "role": user.role})
+    setattr(user, "access_token", access_token)
     return user
 
 
@@ -668,19 +690,71 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
         db.flush()
         patient_id = patient.id
 
+    hashed_password = get_password_hash(data.password)
     user = User(
         id=f"U-{str(uuid.uuid4())[:8].upper()}",
         username=data.username,
         email=data.email,
-        password=data.password,
+        password=hashed_password,
         role=data.role,
         patient_id=patient_id
     )
     db.add(user)
     db.commit()
     db.refresh(user)
+    
+    access_token = create_access_token(data={"sub": user.id, "role": user.role})
+    setattr(user, "access_token", access_token)
     return user
 
+
+
+# ─────────────────────────────────────────────
+# User CRUD & DB Download
+# ─────────────────────────────────────────────
+
+@app.get("/api/download-db", include_in_schema=False)
+def download_db():
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'medcare.db')
+    if os.path.exists(db_path):
+        return FileResponse(db_path, media_type='application/octet-stream', filename="medcare.db")
+    return {"error": "Database file not found"}
+
+@app.get("/api/users", response_model=list[UserOut], tags=["Users"])
+def get_users(db: Session = Depends(get_db), current_user_id: str = Depends(get_current_user_token)):
+    return db.query(User).all()
+
+@app.get("/api/users/{user_id}", response_model=UserOut, tags=["Users"])
+def get_user(user_id: str, db: Session = Depends(get_db), current_user_id: str = Depends(get_current_user_token)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+@app.put("/api/users/{user_id}", response_model=UserOut, tags=["Users"])
+def update_user(user_id: str, data: UserUpdate, db: Session = Depends(get_db), current_user_id: str = Depends(get_current_user_token)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if data.username:
+        user.username = data.username
+    if data.email:
+        user.email = data.email
+    if data.role:
+        user.role = data.role
+    if data.password:
+        user.password = get_password_hash(data.password)
+    db.commit()
+    db.refresh(user)
+    return user
+
+@app.delete("/api/users/{user_id}", status_code=204, tags=["Users"])
+def delete_user(user_id: str, db: Session = Depends(get_db), current_user_id: str = Depends(get_current_user_token)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    db.delete(user)
+    db.commit()
 
 
 # ─────────────────────────────────────────────

@@ -98,6 +98,7 @@ class CarePlan(Base):
 
 class PatientCreate(BaseModel):
     name: str
+    email: str
     age: int
     sex: str
     weight_kg: Optional[float] = None
@@ -194,8 +195,15 @@ class UserOut(BaseModel):
     email: str
     role: str
     patient_id: Optional[str] = None
+    access_token: Optional[str] = None
     class Config:
         from_attributes = True
+
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    email: Optional[str] = None
+    role: Optional[str] = None
+    password: Optional[str] = None
 
 class PatientListOut(BaseModel):
     id: str
