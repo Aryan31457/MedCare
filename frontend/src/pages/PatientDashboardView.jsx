@@ -1075,19 +1075,46 @@ function RedFlagsTab({ rf }) {
         </Typography>
       </Alert>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2.5 }}>
         {rf.map((f, idx) => (
-          <Card key={idx} sx={{ borderLeft: '4px solid', borderColor: 'error.main' }}>
+          <Card
+            key={idx}
+            sx={{
+              height: '100%',
+              borderLeft: '4px solid',
+              borderColor: 'error.main',
+              background: 'rgba(225,29,72,0.025)',
+            }}
+          >
             <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
-              <Typography variant="subtitle2" sx={{ color: 'error.main', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <AlertTriangle size={16} /> Symptom: {f.symptom}
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mt: 0.5 }}>
-                Condition: {f.related_condition}
-              </Typography>
-              <Box sx={{ mt: 1.5, p: 1.5, bgcolor: 'background.default', border: '1px solid #eee8e1', borderRadius: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.2, mb: 0.5 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 30,
+                    height: 30,
+                    borderRadius: '50%',
+                    bgcolor: 'rgba(225,29,72,0.1)',
+                    color: 'error.main',
+                    flexShrink: 0,
+                  }}
+                >
+                  <AlertTriangle size={16} />
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" sx={{ color: 'error.main', fontWeight: 800 }}>
+                    Symptom: {f.symptom}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mt: 0.2 }}>
+                    Condition: {f.related_condition}
+                  </Typography>
+                </Box>
+              </Box>
+              <Box sx={{ mt: 1.5, p: 1.5, bgcolor: 'rgba(13,148,136,0.05)', border: '1px solid rgba(13,148,136,0.18)', borderRadius: 2 }}>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  <strong>What you should do:</strong> {f.action}
+                  <strong style={{ color: '#0f766e' }}>What you should do:</strong> {f.action}
                 </Typography>
               </Box>
             </CardContent>

@@ -86,7 +86,7 @@ function Skeleton() {
     <Box sx={{ p: 4 }}>
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {[...Array(6)].map((_, i) => (
-          <Grid item xs={12} sm={6} md={2} key={i}>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }} key={i}>
             <Box className="skeleton" sx={{ height: 110, borderRadius: 3 }} />
           </Grid>
         ))}
@@ -125,7 +125,8 @@ export default function Dashboard() {
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between',
-        sticky: 'top',
+        position: 'sticky',
+        top: 0,
         zIndex: 50
       }}>
         <Box>
@@ -145,25 +146,25 @@ export default function Dashboard() {
         </Button>
       </Box>
 
-      <Box sx={{ p: 4 }}>
+      <Box sx={{ p: 4, maxWidth: 1440, mx: 'auto' }}>
         {/* Stats Row Grid */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
             <StatCard value={stats?.total_cases ?? 0}      label="Total Cases"    Icon={FileText} color="primary.main" />
           </Grid>
-          <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
             <StatCard value={stats?.review_required ?? 0}  label="Needs Review"   Icon={AlertTriangle} color="secondary.main" />
           </Grid>
-          <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
             <StatCard value={stats?.approved ?? 0}         label="Approved"       Icon={CheckCircle} color="success.main" />
           </Grid>
-          <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
             <StatCard value={stats?.ready ?? 0}            label="Ready"          Icon={Activity} color="info.main" />
           </Grid>
-          <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
             <StatCard value={stats?.total_patients ?? 0}   label="Patients"       Icon={Users} color="purple" />
           </Grid>
-          <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
             <StatCard value={stats?.flags_pending ?? 0}    label="Flags Pending"  Icon={Bookmark} color="warning.main" />
           </Grid>
         </Grid>
@@ -296,7 +297,7 @@ export default function Dashboard() {
 
         {/* Guides Row */}
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent sx={{ p: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.dark', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -322,7 +323,7 @@ export default function Dashboard() {
             </Card>
           </Grid>
           
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent sx={{ p: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.dark', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>

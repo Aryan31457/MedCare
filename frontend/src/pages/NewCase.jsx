@@ -25,7 +25,8 @@ import {
   Divider,
   ToggleButton,
   ToggleButtonGroup,
-  OutlinedInput
+  OutlinedInput,
+  FormHelperText
 } from '@mui/material'
 import {
   User,
@@ -145,6 +146,21 @@ export default function NewCase() {
 
   const set = (field) => (e) => setPatient(p => ({ ...p, [field]: e.target.value }))
 
+  const setDigitsOnly = (field, maxLen) => (e) =>
+    setPatient(p => ({ ...p, [field]: e.target.value.replace(/\D/g, '').slice(0, maxLen) }))
+
+  const ageNum = Number(patient.age)
+  const ageInvalid = patient.age !== '' && (!Number.isFinite(ageNum) || ageNum <= 0 || ageNum >= 150)
+  const contactStartsWithZero = patient.contact.startsWith('0')
+  const contactInvalid = patient.contact !== '' && (patient.contact.length !== 10 || contactStartsWithZero)
+  const contactErrorText = contactStartsWithZero
+    ? 'Number cannot start from zero'
+    : 'Must be exactly 10 digits'
+  const addressInvalid = patient.address.length >= 100
+  const nameInvalid = patient.name.length >= 40
+  const weightNum = Number(patient.weight_kg)
+  const weightInvalid = patient.weight_kg !== '' && (!Number.isFinite(weightNum) || weightNum >= 500)
+
   // Check if Gemini is configured on mount
   useEffect(() => {
     if (geminiStatus === 'idle') {
@@ -153,7 +169,13 @@ export default function NewCase() {
   }, [geminiStatus, dispatch])
 
   const handlePatient = async (e) => {
-    e.preventDefault(); setLoading(true); setError(null)
+    e.preventDefault(); setError(null)
+    if (nameInvalid) return setError('Name must be under 40 characters.')
+    if (ageInvalid) return setError('Age must be a positive number less than 150.')
+    if (weightInvalid) return setError('Weight must be less than 500 kg.')
+    if (contactInvalid) return setError(`Emergency contact number: ${contactErrorText}.`)
+    if (addressInvalid) return setError('Address must be under 100 characters.')
+    setLoading(true)
     try {
       const p = await api.createPatient({
         ...patient,
@@ -256,7 +278,7 @@ export default function NewCase() {
 
               <form onSubmit={handlePatient}>
                 <Grid container spacing={2.5}>
-                  <Grid item xs={12} sm={8}>
+                  <Grid size={{ xs: 12, sm: 8 }}>
                     <TextField
                       fullWidth
                       label="Full Name"
@@ -264,21 +286,27 @@ export default function NewCase() {
                       value={patient.name}
                       onChange={set('name')}
                       required
+                      inputProps={{ maxLength: 39 }}
+                      error={nameInvalid}
+                      helperText={nameInvalid ? 'Must be under 40 characters' : ''}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={4}>
+                  <Grid size={{ xs: 12, sm: 4 }}>
                     <TextField
                       fullWidth
                       label="Age (years)"
-                      type="number"
+                      type="text"
                       placeholder="65"
                       value={patient.age}
-                      onChange={set('age')}
+                      onChange={setDigitsOnly('age', 3)}
                       required
+                      inputProps={{ inputMode: 'numeric' }}
+                      error={ageInvalid}
+                      helperText={ageInvalid ? 'Must be less than 150' : ''}
                     />
                   </Grid>
 
-                  <Grid item xs={12} sm={4}>
+                  <Grid size={{ xs: 12, sm: 4 }}>
                     <FormControl fullWidth>
                       <InputLabel>Sex</InputLabel>
                       <Select value={patient.sex} label="Sex" onChange={set('sex')}>
@@ -288,20 +316,22 @@ export default function NewCase() {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <FormControl fullWidth>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FormControl fullWidth error={weightInvalid}>
                       <InputLabel>Weight (kg)</InputLabel>
                       <OutlinedInput
                         type="number"
-                        inputProps={{ step: '0.1' }}
+                        inputProps={{ step: '0.1', max: 499 }}
                         label="Weight (kg)"
                         placeholder="70.0"
                         value={patient.weight_kg}
                         onChange={set('weight_kg')}
+                        error={weightInvalid}
                       />
+                      {weightInvalid && <FormHelperText>Must be less than 500 kg</FormHelperText>}
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} sm={4}>
+                  <Grid size={{ xs: 12, sm: 4 }}>
                     <FormControl fullWidth>
                       <InputLabel>Blood Group</InputLabel>
                       <Select value={patient.blood_group} label="Blood Group" onChange={set('blood_group')}>
@@ -313,7 +343,7 @@ export default function NewCase() {
                     </FormControl>
                   </Grid>
 
-                  <Grid item xs={12}>
+                  <Grid size={12}>
                     <TextField
                       fullWidth
                       label="Known Drug Allergies"
@@ -324,22 +354,28 @@ export default function NewCase() {
                     />
                   </Grid>
 
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
-                      label="Emergency Contact Info"
-                      placeholder="Name — Phone Number"
+                      label="Emergency Contact Number"
+                      placeholder="10-digit mobile number"
                       value={patient.contact}
-                      onChange={set('contact')}
+                      onChange={setDigitsOnly('contact', 10)}
+                      inputProps={{ inputMode: 'numeric', maxLength: 10 }}
+                      error={contactInvalid}
+                      helperText={contactInvalid ? contactErrorText : ''}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       label="Address"
                       placeholder="City, State"
                       value={patient.address}
                       onChange={set('address')}
+                      inputProps={{ maxLength: 99 }}
+                      error={addressInvalid}
+                      helperText={`${patient.address.length}/99 characters`}
                     />
                   </Grid>
                 </Grid>
@@ -435,7 +471,7 @@ export default function NewCase() {
 
               <Grid container spacing={3} sx={{ mb: 4 }}>
                 {/* Rule-Based NLP Mode */}
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Paper 
                     onClick={() => setAiMode(MODE_NLP)}
                     sx={{ 
@@ -467,7 +503,7 @@ export default function NewCase() {
                 </Grid>
 
                 {/* Gemini AI Mode */}
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Paper 
                     onClick={() => geminiReady && setAiMode(MODE_GEMINI)}
                     sx={{ 
