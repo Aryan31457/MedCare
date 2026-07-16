@@ -135,53 +135,65 @@ export default function Login() {
       alignItems: 'center',
       justifyContent: 'center',
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%)',
+      background: 'linear-gradient(135deg, #fbfaf7 0%, #f3ece2 100%)',
       position: 'relative',
-      overflow: 'hidden',
+      overflowX: 'hidden',
+      overflowY: 'auto',
       '&::before': {
         content: '""',
         position: 'absolute',
-        width: '300px',
-        height: '300px',
+        width: '320px',
+        height: '320px',
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(14,165,233,0.12) 0%, rgba(0,0,0,0) 70%)',
-        top: '10%',
-        left: '15%',
+        background: 'radial-gradient(circle, rgba(13,148,136,0.14) 0%, rgba(0,0,0,0) 70%)',
+        top: '8%',
+        left: '12%',
         pointerEvents: 'none',
       },
       '&::after': {
         content: '""',
         position: 'absolute',
-        width: '400px',
-        height: '400px',
+        width: '420px',
+        height: '420px',
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(79,70,229,0.1) 0%, rgba(0,0,0,0) 70%)',
-        bottom: '10%',
-        right: '15%',
+        background: 'radial-gradient(circle, rgba(234,88,12,0.08) 0%, rgba(0,0,0,0) 70%)',
+        bottom: '8%',
+        right: '12%',
         pointerEvents: 'none',
       },
-      p: 3
+      py: 5,
+      px: 3
     }}>
-      <Card sx={{ 
-        maxWidth: 460, 
-        width: '100%', 
-        borderRadius: 5, 
+      <Card sx={{
+        maxWidth: 460,
+        width: '100%',
+        borderRadius: 5,
         border: '1px solid rgba(255, 255, 255, 0.7)',
-        background: 'rgba(255, 255, 255, 0.85)',
+        background: 'rgba(255, 255, 255, 0.9)',
         backdropFilter: 'blur(20px)',
-        boxShadow: '0 20px 40px -15px rgba(15, 23, 42, 0.08)',
+        boxShadow: '0 24px 48px -18px rgba(13,148,136,0.18), 0 4px 12px -2px rgba(15, 23, 42, 0.05)',
         overflow: 'visible'
       }}>
-        <CardContent sx={{ p: 4 }}>
+        <CardContent sx={{ p: { xs: 3, sm: 4.5 } }}>
           {/* Header branding */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
-            <Box sx={{ display: 'inline-flex', p: 1.5, bgcolor: 'primary.light' + '12', borderRadius: 4, color: 'primary.main', mb: 1.5 }}>
-              <HeartPulse size={36} strokeWidth={2.5} />
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3.5 }}>
+            <Box sx={{
+              display: 'inline-flex',
+              p: 1.75,
+              bgcolor: 'primary.light' + '15',
+              border: '1px solid',
+              borderColor: 'primary.light' + '30',
+              borderRadius: '50%',
+              color: 'primary.main',
+              mb: 1.75,
+              boxShadow: '0 8px 20px -6px rgba(13,148,136,0.25)'
+            }}>
+              <HeartPulse size={32} strokeWidth={2.5} />
             </Box>
             <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.dark', letterSpacing: '-0.02em' }}>
               MedCare Portal
             </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5, textAlign: 'center' }}>
               Automated Clinical Discharge Recovery System
             </Typography>
           </Box>
@@ -212,7 +224,7 @@ export default function Login() {
           {tabValue === 0 ? (
             // Sign In View
             <form onSubmit={handleLoginSubmit}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.75 }}>
                 <FormControl fullWidth required variant="outlined">
                   <InputLabel>Username or Email</InputLabel>
                   <OutlinedInput
@@ -261,7 +273,13 @@ export default function Login() {
                   variant="contained"
                   fullWidth
                   disabled={loading}
-                  sx={{ height: 48, fontSize: '0.95rem', mt: 1 }}
+                  sx={{
+                    height: 48,
+                    fontSize: '0.95rem',
+                    mt: 1,
+                    boxShadow: '0 4px 14px rgba(13,148,136,0.2)',
+                    '&:hover': { boxShadow: '0 6px 20px rgba(13,148,136,0.3)' }
+                  }}
                 >
                   {loading ? <CircularProgress size={24} color="inherit" /> : <>Sign In <ChevronRight size={16} style={{ marginLeft: 6 }} /></>}
                 </Button>
@@ -270,7 +288,7 @@ export default function Login() {
           ) : (
             // Register View
             <form onSubmit={handleRegisterSubmit}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.2 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                 <FormControl fullWidth required variant="outlined">
                   <InputLabel>Username</InputLabel>
                   <OutlinedInput
@@ -406,7 +424,13 @@ export default function Login() {
                   variant="contained"
                   fullWidth
                   disabled={loading}
-                  sx={{ height: 48, fontSize: '0.95rem', mt: 1 }}
+                  sx={{
+                    height: 48,
+                    fontSize: '0.95rem',
+                    mt: 1,
+                    boxShadow: '0 4px 14px rgba(13,148,136,0.2)',
+                    '&:hover': { boxShadow: '0 6px 20px rgba(13,148,136,0.3)' }
+                  }}
                 >
                   {loading ? <CircularProgress size={24} color="inherit" /> : <>Create Account <ChevronRight size={16} style={{ marginLeft: 6 }} /></>}
                 </Button>

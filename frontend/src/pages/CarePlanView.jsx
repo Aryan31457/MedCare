@@ -101,15 +101,26 @@ export default function CarePlanView() {
   const activeTabId = TABS[tabVal].id
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      flexGrow: 1,
+      '& .MuiTypography-body2': { fontSize: '0.92rem' },
+      '& .MuiTypography-caption': { fontSize: '0.78rem' },
+      '& .MuiTypography-subtitle1': { fontSize: '1.05rem' },
+      '& .MuiTypography-subtitle2': { fontSize: '0.92rem' },
+    }}>
       {/* Topbar navigation */}
-      <Box sx={{ 
-        bgcolor: 'background.paper', 
-        borderBottom: '1px solid #eee8e1', 
-        p: '18px 32px', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between'
+      <Box sx={{
+        bgcolor: 'background.paper',
+        borderBottom: '1px solid #eee8e1',
+        p: '18px 32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'sticky',
+        top: 0,
+        zIndex: 50
       }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.dark', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -129,7 +140,7 @@ export default function CarePlanView() {
         </Box>
       </Box>
 
-      <Box sx={{ p: 4 }}>
+      <Box sx={{ p: 4, maxWidth: 1440, mx: 'auto', width: '100%' }}>
         {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
         {/* Status and warnings alert */}
@@ -745,7 +756,7 @@ function NoteTab({ note, flags, mon }) {
           </Typography>
           <Grid container spacing={2}>
             {Object.entries(mon).map(([test, freq]) => (
-              <Grid item xs={12} sm={4} key={test}>
+              <Grid size={{ xs: 12, sm: 4 }} key={test}>
                 <Paper sx={{ p: 2, border: '1px solid #eee8e1', bgcolor: '#fbfaf8' }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'primary.dark' }}>{test}</Typography>
                   <Typography variant="caption" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.6, mt: 1 }}>
