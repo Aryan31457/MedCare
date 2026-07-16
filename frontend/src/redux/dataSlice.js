@@ -5,7 +5,8 @@ import { logout } from './authSlice.js'
 export const fetchCases = createAsyncThunk('data/fetchCases', async () => {
   return await api.getCases()
 }, {
-  condition: (_, { getState }) => {
+  condition: (force, { getState }) => {
+    if (force) return true;
     const { casesStatus } = getState().data;
     if (casesStatus === 'loading' || casesStatus === 'succeeded') return false;
   }
@@ -14,7 +15,8 @@ export const fetchCases = createAsyncThunk('data/fetchCases', async () => {
 export const fetchStats = createAsyncThunk('data/fetchStats', async () => {
   return await api.getStats()
 }, {
-  condition: (_, { getState }) => {
+  condition: (force, { getState }) => {
+    if (force) return true;
     const { statsStatus } = getState().data;
     if (statsStatus === 'loading' || statsStatus === 'succeeded') return false;
   }

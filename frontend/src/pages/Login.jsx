@@ -147,6 +147,7 @@ export default function Login() {
         background: 'radial-gradient(circle, rgba(14,165,233,0.12) 0%, rgba(0,0,0,0) 70%)',
         top: '10%',
         left: '15%',
+        pointerEvents: 'none',
       },
       '&::after': {
         content: '""',
@@ -157,6 +158,7 @@ export default function Login() {
         background: 'radial-gradient(circle, rgba(79,70,229,0.1) 0%, rgba(0,0,0,0) 70%)',
         bottom: '10%',
         right: '15%',
+        pointerEvents: 'none',
       },
       p: 3
     }}>
@@ -241,7 +243,12 @@ export default function Login() {
                     }
                     endAdornment={
                       <InputAdornment position="end">
-                        <IconButton onClick={() => setShowLoginPassword(!showLoginPassword)} edge="end">
+                        <IconButton
+                          type="button"
+                          edge="end"
+                          onClick={() => setShowLoginPassword(prev => !prev)}
+                          onMouseDown={(e) => e.preventDefault()}
+                        >
                           {showLoginPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </IconButton>
                       </InputAdornment>
@@ -310,7 +317,12 @@ export default function Login() {
                     }
                     endAdornment={
                       <InputAdornment position="end">
-                        <IconButton onClick={() => setShowRegPassword(!showRegPassword)} edge="end">
+                        <IconButton
+                          type="button"
+                          edge="end"
+                          onClick={() => setShowRegPassword(prev => !prev)}
+                          onMouseDown={(e) => e.preventDefault()}
+                        >
                           {showRegPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </IconButton>
                       </InputAdornment>

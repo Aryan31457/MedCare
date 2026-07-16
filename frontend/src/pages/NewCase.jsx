@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchGeminiStatus } from '../redux/dataSlice'
+import { fetchGeminiStatus, fetchCases, fetchStats } from '../redux/dataSlice'
 import { api } from '../api/client.js'
 import {
   Box,
@@ -175,6 +175,8 @@ export default function NewCase() {
       const c = await api.createCase({ patient_id: patientId, discharge_text: docText })
       setCaseId(c.id)
       setActiveStep(2)
+      dispatch(fetchCases(true))
+      dispatch(fetchStats(true))
     } catch (err) { setError(err.message) }
     finally { setLoading(false) }
   }

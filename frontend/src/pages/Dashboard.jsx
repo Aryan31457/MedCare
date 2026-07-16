@@ -102,8 +102,8 @@ export default function Dashboard() {
   const { cases, stats, casesStatus, statsStatus } = useSelector(state => state.data)
 
   const loadData = () => {
-    dispatch(fetchCases())
-    dispatch(fetchStats())
+    dispatch(fetchCases(true))
+    dispatch(fetchStats(true))
   }
 
   useEffect(() => {
